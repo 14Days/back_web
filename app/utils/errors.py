@@ -1,4 +1,5 @@
 errors = {
     '101': 'params error',
-    '301': 'query error'
+    '401': 'login fail',
+    '501': 'query error'
 }

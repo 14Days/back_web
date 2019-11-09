@@ -16,19 +16,40 @@ def login():
 
     if username is None or username == '' or \
             password is None or password == '':
-        current_app.logger.error('params error')
-        return 400, fail_warp(errors['101'])
+        current_app.logger.error('params error %s', str({
+            'username': username,
+            'password': password
+        }))
+        return fail_warp(errors['101']), 400
 
     try:
         res = confirm_user(username, encode_md5(password))
         if res is not None:
             session['user_id'] = res.id
+            current_app.logger.info('login success %s', str({
+                'username': username,
+                'type': res.role
+            }))
             return success_warp({
                 'type': res.role
             })
         else:
-            current_app.logger.error('login fail')
-            return fail_warp('login fail')
+            current_app.logger.error('login fail %s', str({
+                'username': username,
+                'password': password
+            }))
+            return fail_warp(errors['401']), 400
     except SQLAlchemyError as e:
-        current_app.logger.error('query error', e)
-        return fail_warp(errors['301'])
+        current_app.logger.error(e)
+        return fail_warp(errors['501']), 500
+
+
+@login_page.route('', methods=['DELETE'])
+def logout():
+    user_id = session['user_id']
+    session.clear()
+
+    current_app.logger.info('logout success %s', str({
+        'user_id': user_id
+    }))
+    return success_warp('logout success')
