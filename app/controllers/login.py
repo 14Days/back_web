@@ -26,6 +26,7 @@ def login():
         res = confirm_user(username, encode_md5(password))
         if res is not None:
             session['user_id'] = res.id
+            session['type'] = res.role
             current_app.logger.info('login success %s', str({
                 'username': username,
                 'type': res.role

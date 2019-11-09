@@ -1,0 +1,12 @@
+from flask import Blueprint, session
+from app.utils.warp import fail_warp
+from app.utils.errors import errors
+
+
+def auth_mid(page: Blueprint):
+    @page.before_request
+    def get_user():
+        user_id = session.get('user_id')
+
+        if user_id is None:
+            return fail_warp(errors['402']), 401
