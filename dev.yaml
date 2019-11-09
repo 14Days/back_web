@@ -1,0 +1,6 @@
+ENV: development
+DEBUG: true
+TESTING: true
+SECRET_KEY: 'python -c ''import os; print(os.urandom(16))'''
+SQLALCHEMY_DATABASE_URI: 'mysql+pymysql://designer:sEPL7PHYNk6DGpa2@wghtstudio.cn:3306/designer'
+SQLALCHEMY_TRACK_MODIFICATIONS: false
