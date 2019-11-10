@@ -53,7 +53,7 @@ def get_user(user_id: int, username, page: int, limit: int) -> (list, int):
         user.append({
             'username': item.username,
             'nickname': item.nickname,
-            'create_at': item.create_at,
+            'create_at': item.create_at.strftime('%Y-%m-%d %H:%M:%S'),
             'sex': item.sex
         })
 
