@@ -6,5 +6,5 @@ from app.controllers.user import user_page
 
 def register_router(app: Flask):
     app.register_blueprint(login_page)
-    auth_mid(user_page)
+    auth_mid(user_page, 2)
     app.register_blueprint(user_page)
