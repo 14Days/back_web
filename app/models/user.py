@@ -35,7 +35,6 @@ def delete_user(temp_id: int, user_id: int):
 
 
 def get_user(user_id: int, username, page: int, limit: int) -> (list, int):
-    sql = None
     if username is None:
         sql = User.query. \
             filter(User.parent_id == user_id). \
