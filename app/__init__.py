@@ -1,5 +1,6 @@
 from flask import Flask
 from app.config import set_config
+from app.middlewares.log import log_mid
 from app.utils.logger import create_log
 from app.controllers import register_router
 from app.models import connect_db
@@ -13,6 +14,9 @@ def create_new_app() -> Flask:
 
     # 初始化log
     create_log(app)
+
+    # 请求日志
+    log_mid(app)
 
     # 注册路由
     register_router(app)
