@@ -1,6 +1,6 @@
 from flask import Blueprint, request, current_app, session
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.user import add_user, check_user, delete_user
+from app.models.user import add_user, check_user, delete_user, get_user
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 from app.utils.md5 import encode_md5
@@ -64,3 +64,25 @@ def delete_users():
     except RuntimeError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
+
+
+@user_page.route('', methods=['GET'])
+def get_users():
+    user_id = session['user_id']
+    username = request.args.get('username')
+    page = int(request.args.get('page')) if request.args.get('page') is not None else 0
+    limit = int(request.args.get('limit')) if request.args.get('page') is not None else 20
+
+    try:
+        user, count = get_user(user_id, username, page, limit)
+        current_app.logger.info('user info %s', str({
+            'user': user,
+            'total': count
+        }))
+        return success_warp({
+            'user': user,
+            'total': count
+        })
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(errors['501']), 500

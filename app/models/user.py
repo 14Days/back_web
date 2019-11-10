@@ -32,3 +32,29 @@ def delete_user(temp_id: int, user_id: int):
     for item in user:
         item.delete_at = datetime.datetime.now()
     session_commit()
+
+
+def get_user(user_id: int, username, page: int, limit: int) -> (list, int):
+    sql = None
+    if username is None:
+        sql = User.query. \
+            filter(User.parent_id == user_id). \
+            filter(User.delete_at.is_(None))
+    else:
+        sql = User.query. \
+            filter(User.parent_id == user_id). \
+            filter(User.delete_at.is_(None)). \
+            filter(User.username.like('%{}%'.format(username)))
+    temp = sql.limit(limit).offset(page * limit).all()
+    count = sql.count()
+
+    user = []
+    for item in temp:
+        user.append({
+            'username': item.username,
+            'nickname': item.nickname,
+            'create_at': item.create_at,
+            'sex': item.sex
+        })
+
+    return user, count
