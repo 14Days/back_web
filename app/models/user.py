@@ -34,7 +34,7 @@ def delete_user(temp_id: int, user_id: int):
     session_commit()
 
 
-def get_user(user_id: int, username, page: int, limit: int) -> (list, int):
+def get_user(user_id: int, username) -> (list, int):
     if username is None:
         sql = User.query. \
             filter(User.parent_id == user_id). \
@@ -44,7 +44,7 @@ def get_user(user_id: int, username, page: int, limit: int) -> (list, int):
             filter(User.parent_id == user_id). \
             filter(User.delete_at.is_(None)). \
             filter(User.username.like('%{}%'.format(username)))
-    temp = sql.limit(limit).offset(page * limit).all()
+    temp = sql.all()
     count = sql.count()
 
     user = []

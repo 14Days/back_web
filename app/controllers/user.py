@@ -70,11 +70,11 @@ def delete_users():
 def get_users():
     user_id = session['user_id']
     username = request.args.get('username')
-    page = int(request.args.get('page')) if request.args.get('page') is not None else 0
-    limit = int(request.args.get('limit')) if request.args.get('page') is not None else 20
+    # page = int(request.args.get('page')) if request.args.get('page') is not None else 0
+    # limit = int(request.args.get('limit')) if request.args.get('page') is not None else 20
 
     try:
-        user, count = get_user(user_id, username, page, limit)
+        user, count = get_user(user_id, username)
         current_app.logger.info('user info %s', str({
             'user': user,
             'total': count
