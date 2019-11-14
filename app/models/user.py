@@ -57,3 +57,23 @@ def get_user(user_id: int, username) -> (list, int):
         })
 
     return user, count
+
+
+def get_user_detail(user_id, this_user):
+    user = User.query. \
+        filter(User.id == this_user). \
+        filter(User.parent_id == user_id). \
+        filter(User.delete_at.is_(None)). \
+        first()
+    if user is None:
+        raise RuntimeError('没有此用户')
+
+    return {
+        'username': user.username,
+        'nickname': user.nickname,
+        'sex': user.sex,
+        'email': user.email,
+        'phone': user.phone,
+        'avatar': user.avatar,
+        'create_at': user.create_at.strftime('%Y-%m-%d %H:%M:%S')
+    }
