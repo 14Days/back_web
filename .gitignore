@@ -11,3 +11,9 @@ log/flask.log.*
 
 # 缓存文件
 __pycache__
+
+# 图片
+avatar/*.jpg
+avatar/*.png
+avatar/*.jpeg
+avatar/*.gif

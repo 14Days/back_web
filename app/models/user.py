@@ -4,6 +4,11 @@ from app.models.model import User, Avatar
 
 
 def check_user(username: str):
+    """
+    检测用户是否存在
+    :param username:
+    :return:
+    """
     res = User.query.filter(User.username == username). \
         filter(User.delete_at.is_(None)).first()
     if res is not None:
@@ -11,6 +16,14 @@ def check_user(username: str):
 
 
 def add_user(username: str, password: str, parent: int, role: int):
+    """
+    新建用户
+    :param username:
+    :param password:
+    :param parent:
+    :param role: 用户角色
+    :return:
+    """
     user = User(
         username=username,
         password=password,
@@ -24,6 +37,12 @@ def add_user(username: str, password: str, parent: int, role: int):
 
 
 def delete_user(temp_id: int, user_id: int):
+    """
+    删除用户
+    :param temp_id:
+    :param user_id:
+    :return:
+    """
     user = User.query.filter(User.id.in_(temp_id)).all()
     for item in user:
         if item.parent_id != user_id:
@@ -35,6 +54,12 @@ def delete_user(temp_id: int, user_id: int):
 
 
 def get_user(user_id: int, username) -> (list, int):
+    """
+    获得所有用户的信息，支持模糊查询
+    :param user_id:
+    :param username:
+    :return:
+    """
     if username is None:
         sql = User.query. \
             filter(User.parent_id == user_id). \
@@ -60,6 +85,12 @@ def get_user(user_id: int, username) -> (list, int):
 
 
 def get_user_detail(user_id, this_user):
+    """
+    获取某一用户的详细信息
+    :param user_id:
+    :param this_user:
+    :return:
+    """
     user = User.query. \
         filter(User.id == this_user). \
         filter(User.parent_id == user_id). \
@@ -91,3 +122,10 @@ def get_user_detail(user_id, this_user):
         },
         'create_at': user.create_at.strftime('%Y-%m-%d %H:%M:%S')
     }
+
+
+def save_avatar(name):
+    avatar = Avatar(name=name, status=0)
+    db.session.add(avatar)
+    session_commit()
+    return avatar

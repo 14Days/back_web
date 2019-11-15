@@ -1,10 +1,17 @@
+import os
+import pathlib
 from flask import Blueprint, request, current_app, session
 from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.user import add_user, check_user, delete_user, get_user, get_user_detail
+from app.models.user import add_user, \
+    check_user, \
+    delete_user, \
+    get_user, \
+    get_user_detail, \
+    save_avatar
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
-from app.utils.md5 import encode_md5
+from app.utils.md5 import encode_md5, file_md5
 
 user_page = Blueprint('user', __name__, url_prefix='/user')
 
@@ -109,9 +116,59 @@ class User(MethodView):
             current_app.logger.error(e)
             return fail_warp(e.args[0]), 500
 
+    @staticmethod
+    def put(user_id: int):
+
 
 user_view = User.as_view('user_api')
 user_page.add_url_rule('', defaults={'this_user': None}, view_func=user_view, methods=['GET'])
 user_page.add_url_rule('', view_func=user_view, methods=['POST'])
-user_page.add_url_rule('/<int:this_user>', view_func=user_view, methods=['GET'])
+user_page.add_url_rule('/<int:this_user>', view_func=user_view, methods=['GET', 'PUT'])
 user_page.add_url_rule('', view_func=user_view, methods=['DELETE'])
+
+
+class Upload(MethodView):
+    _UPLOAD_FOLDER = pathlib.Path.joinpath(pathlib.Path(__file__).parent.parent.parent, 'avatar')
+    _ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+    @staticmethod
+    def allowed_file(filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in Upload._ALLOWED_EXTENSIONS
+
+    @staticmethod
+    def post():
+        f = request.files.get('avatar')
+        # 校验存在性
+        if f is None:
+            current_app.logger.error('params error')
+            return fail_warp(errors['101']), 400
+        if not Upload.allowed_file(f.filename):
+            current_app.logger.error('file error')
+            return fail_warp(errors['102']), 400
+
+        file_path = pathlib.Path.joinpath(Upload._UPLOAD_FOLDER, f.filename)
+        f.save(str(file_path))
+
+        # 文件重命名
+        name = file_md5(file_path) + '.' + f.filename.rsplit('.', 1)[1].lower()
+        os.rename(
+            str(file_path),
+            str(pathlib.Path.joinpath(Upload._UPLOAD_FOLDER, name))
+        )
+
+        try:
+            avatar = save_avatar(name)
+            current_app.logger.info('delete user success %s', str({
+                'avatar_id': avatar.id,
+            }))
+            return success_warp({
+                'avatar_id': avatar.id
+            })
+        except SQLAlchemyError as e:
+            current_app.logger.error(e)
+            return fail_warp(errors['501']), 500
+
+
+upload_view = Upload.as_view('upload_api')
+user_page.add_url_rule('/avatar', view_func=upload_view, methods=['POST'])
