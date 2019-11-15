@@ -1,6 +1,6 @@
 import datetime
 from app.models import db, session_commit
-from app.models.model import User
+from app.models.model import User, Avatar
 
 
 def check_user(username: str):
@@ -65,8 +65,19 @@ def get_user_detail(user_id, this_user):
         filter(User.parent_id == user_id). \
         filter(User.delete_at.is_(None)). \
         first()
+
     if user is None:
         raise RuntimeError('没有此用户')
+
+    avatar = None
+    if len(user.avatar) == 0:
+        avatar = Avatar.query.filter_by(status=-1).first()
+        user.avatar.append(avatar)
+    else:
+        for item in user.avatar:
+            if item.status == 1:
+                avatar = item
+                break
 
     return {
         'username': user.username,
@@ -74,6 +85,9 @@ def get_user_detail(user_id, this_user):
         'sex': user.sex,
         'email': user.email,
         'phone': user.phone,
-        'avatar': user.avatar,
+        'avatar': {
+            'id': avatar.id,
+            'name': avatar.name
+        },
         'create_at': user.create_at.strftime('%Y-%m-%d %H:%M:%S')
     }
