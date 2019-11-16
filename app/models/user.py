@@ -150,6 +150,9 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
     """
     user = User.query.filter_by(id=this_user).first()
 
+    if user is None:
+        raise RuntimeError('user not exist')
+
     if user.id != user_id and user.parent_id != user_id:
         raise RuntimeError('no auth')
     if avatar['old_id'] != avatar['new_id']:
@@ -179,6 +182,9 @@ def change_password(user_id, this_user, new_password, old_password):
     :return:
     """
     user = User.query.filter_by(id=this_user).first()
+
+    if user is None:
+        raise RuntimeError('user not exist')
 
     if user.id == user_id:
         if old_password == user.password:
