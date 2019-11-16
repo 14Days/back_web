@@ -148,7 +148,10 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
     :param avatar:
     :return:
     """
-    user = User.query.filter_by(id=this_user).first()
+    user = User.query. \
+        filter(User.id == this_user). \
+        filter(User.delete_at.is_(None)). \
+        first()
 
     if user is None:
         raise RuntimeError('user not exist')
@@ -181,7 +184,10 @@ def change_password(user_id, this_user, new_password, old_password):
     :param old_password:
     :return:
     """
-    user = User.query.filter_by(id=this_user).first()
+    user = User.query. \
+        filter(User.id == this_user). \
+        filter(User.delete_at.is_(None)). \
+        first()
 
     if user is None:
         raise RuntimeError('user not exist')
