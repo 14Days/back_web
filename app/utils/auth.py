@@ -24,7 +24,7 @@ def auth_require(role):
         @wraps(func)
         def wrapper(*args, **kwargs):
             user_role = session['type']
-            if Permission.ROLE_MAP[int(user_role)] & role != user_role:
+            if Permission.ROLE_MAP[int(user_role)] & role != Permission.ROLE_MAP[int(user_role)]:
                 return fail_warp(errors['403']), 401
             return func(*args, **kwargs)
 
