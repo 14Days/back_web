@@ -1,4 +1,5 @@
-from flask import Blueprint, request, session
+from flask import Blueprint, request, session, current_app
+from sqlalchemy.exc import SQLAlchemyError
 from app.models.notice import GetNotice
 from app.utils.warp import success_warp, fail_warp
 from app.utils.auth import auth_require, Permission
@@ -17,9 +18,19 @@ def notice_get():
     end_time = request.args.get('end_time')
     notice_type = request.args.get('type')
 
-    count, res = GetNotice(role).get_res(user_id, limit, page, start_time, end_time, notice_type)
-
-    return success_warp({
-        'count': count,
-        'notice': res
-    })
+    try:
+        count, res = GetNotice(role).get_res(user_id, limit, page, start_time, end_time, notice_type)
+        current_app.logger.info({
+            'count': count,
+            'notice': res
+        })
+        return success_warp({
+            'count': count,
+            'notice': res
+        })
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
