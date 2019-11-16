@@ -56,7 +56,7 @@ def login_delete():
     退出登陆
     :return:
     """
-    user_id = session['user_id']
+    user_id = session.get('user_id')
     session.clear()
 
     current_app.logger.info('logout success %s', str({
