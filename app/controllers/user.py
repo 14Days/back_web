@@ -9,7 +9,8 @@ from app.models.user import add_user, \
     get_user, \
     get_user_detail, \
     save_avatar, \
-    change_user_info
+    change_user_info, \
+    change_password
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 from app.utils.md5 import encode_md5, file_md5
@@ -150,7 +151,7 @@ class User(MethodView):
 
         try:
             change_user_info(user_id, this_user, nickname, sex, email, phone, avatar)
-            current_app.logger.info('params error %s', str({
+            current_app.logger.info('change user info success %s', str({
                 'nickname': nickname,
                 'sex': sex,
                 'email': email,
@@ -218,3 +219,50 @@ class Upload(MethodView):
 
 upload_view = Upload.as_view('upload_api')
 user_page.add_url_rule('/avatar', view_func=upload_view, methods=['POST'])
+
+
+class Password(MethodView):
+    @staticmethod
+    def put(this_user: int):
+        """
+        修改密码
+        :param this_user:
+        :return:
+        """
+        user_id = session['user_id']
+        data = request.json
+        new_password = data.get('new_password')
+        old_password = data.get('old_password')
+
+        if user_id == this_user:
+            if new_password is None or new_password == '' or \
+                    old_password is None or old_password == '':
+                current_app.logger.error('params error %s', str({
+                    'new_password': new_password,
+                    'old_password': old_password
+                }))
+                return fail_warp(errors['101']), 400
+        else:
+            if new_password is None or new_password == '':
+                current_app.logger.error('params error %s', str({
+                    'new_password': new_password,
+                    'old_password': old_password
+                }))
+                return fail_warp(errors['101']), 400
+
+        try:
+            change_password(user_id, this_user, encode_md5(new_password), encode_md5(old_password))
+            current_app.logger.info('change password success %s', str({
+                'this_user': this_user
+            }))
+            return success_warp('update success')
+        except SQLAlchemyError as e:
+            current_app.logger.error(e)
+            return fail_warp(e.args[0]), 500
+        except RuntimeError as e:
+            current_app.logger.error(e)
+            return fail_warp(e.args[0]), 500
+
+
+password_view = Password.as_view('password_api')
+user_page.add_url_rule('/password/<int:this_user>', view_func=password_view, methods=['PUT'])

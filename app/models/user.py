@@ -167,3 +167,27 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
     user.nickname, user.sex, user.email, user.phone = nickname, sex, email, phone
 
     session_commit()
+
+
+def change_password(user_id, this_user, new_password, old_password):
+    """
+    修改密码
+    :param user_id:
+    :param this_user:
+    :param new_password:
+    :param old_password:
+    :return:
+    """
+    user = User.query.filter_by(id=this_user).first()
+
+    if user.id == user_id:
+        if old_password == user.password:
+            user.password = new_password
+            session_commit()
+        else:
+            raise RuntimeError('old password error')
+    elif user.parent_id == user_id:
+        user.password = new_password
+        session_commit()
+    else:
+        raise RuntimeError('no auth')
