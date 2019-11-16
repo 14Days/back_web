@@ -117,7 +117,15 @@ class User(MethodView):
             return fail_warp(e.args[0]), 500
 
     @staticmethod
-    def put(user_id: int):
+    def put(this_user: int):
+        nickname = request.json.get('nickname')
+        sex = request.json.get('sex')
+        email = request.json.get('email')
+        phone = request.json.get('phone')
+        avatar = request.json.get('avatar')
+
+        # if nickname is None or nickname == '' or \
+        #         sex is None or sex == '':
 
 
 user_view = User.as_view('user_api')
