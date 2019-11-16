@@ -8,7 +8,8 @@ from app.models.user import add_user, \
     delete_user, \
     get_user, \
     get_user_detail, \
-    save_avatar
+    save_avatar, \
+    change_user_info
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 from app.utils.md5 import encode_md5, file_md5
@@ -118,14 +119,51 @@ class User(MethodView):
 
     @staticmethod
     def put(this_user: int):
+        user_id = session['user_id']
         nickname = request.json.get('nickname')
         sex = request.json.get('sex')
         email = request.json.get('email')
         phone = request.json.get('phone')
         avatar = request.json.get('avatar')
 
-        # if nickname is None or nickname == '' or \
-        #         sex is None or sex == '':
+        # 一级参数检验
+        if nickname is None or nickname == '' or \
+                sex is None or sex == '' or \
+                email is None or phone is None or \
+                type(avatar) != dict or this_user is None:
+            current_app.logger.error('params error %s', str({
+                'nickname': nickname,
+                'sex': sex,
+                'email': email,
+                'phone': phone,
+                'avatar': avatar
+            }))
+            return fail_warp(errors['101']), 400
+
+        old_avatar, new_avatar = avatar.get('old_id'), avatar.get('new_id')
+
+        if old_avatar is None or new_avatar is None:
+            current_app.logger.error('params error %s', str({
+                'avatar': avatar
+            }))
+            return fail_warp(errors['101']), 400
+
+        try:
+            change_user_info(user_id, this_user, nickname, sex, email, phone, avatar)
+            current_app.logger.info('params error %s', str({
+                'nickname': nickname,
+                'sex': sex,
+                'email': email,
+                'phone': phone,
+                'avatar': avatar
+            }))
+            return success_warp('update success')
+        except SQLAlchemyError as e:
+            current_app.logger.error(e)
+            return fail_warp(e.args[0]), 500
+        except RuntimeError as e:
+            current_app.logger.error(e)
+            return fail_warp(e.args[0]), 500
 
 
 user_view = User.as_view('user_api')

@@ -125,7 +125,45 @@ def get_user_detail(user_id, this_user):
 
 
 def save_avatar(name):
+    """
+    保存用户头像名称
+    :param name:
+    :return:
+    """
     avatar = Avatar(name=name, status=0)
     db.session.add(avatar)
     session_commit()
     return avatar
+
+
+def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
+    """
+    修改个人信息
+    :param user_id: 登陆用户
+    :param this_user: 要修改的用户
+    :param nickname:
+    :param sex:
+    :param email:
+    :param phone:
+    :param avatar:
+    :return:
+    """
+    user = User.query.filter_by(id=this_user).first()
+
+    if user.id != user_id and user.parent_id != user_id:
+        raise RuntimeError('no auth')
+    if avatar['old_id'] != avatar['new_id']:
+        old_avatar = Avatar.query.filter_by(id=avatar['old_id']).first()
+        if old_avatar.user_id != this_user:
+            raise RuntimeError('no auth')
+
+        new_avatar = Avatar.query.filter_by(id=avatar['new_id']).first()
+        if new_avatar.status != 0:
+            raise RuntimeError('no auth')
+
+        old_avatar.status = 2
+        new_avatar.status, new_avatar.user_id = 1, this_user
+
+    user.nickname, user.sex, user.email, user.phone = nickname, sex, email, phone
+
+    session_commit()

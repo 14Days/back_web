@@ -1,4 +1,5 @@
 import pytest
+from flask import session
 
 
 class TestLogin:
@@ -16,3 +17,10 @@ class TestLogin:
         data = rv.get_json()
         print(data)
         assert data['status'] == 'success'
+
+    def test_delete(self, client, auth_client):
+        auth_client.login()
+
+        with client:
+            auth_client.logout()
+            assert "user_id" not in session
