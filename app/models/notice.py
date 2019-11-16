@@ -9,27 +9,33 @@ from app.models.model import Notice, User
 
 # 获取通知
 class IGetNotice:
-    _sql = None
+    _sql_all = None
+    _sql_detail = None
 
-    def get_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
         pass
 
-    def _get_sql(self, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_detail(self, user_id, notice_id):
+        pass
+
+    def _get_all_sql(self, limit, page, start_time, end_time, notice_type) -> (int, list):
         if start_time is not None:
             start = datetime.datetime.strptime(start_time, '%Y-%m-%d')
-            self._sql = self._sql.filter(Notice.create_at >= start)
+            self._sql_all = self._sql_all.filter(Notice.create_at >= start)
         if end_time is not None:
             end = datetime.datetime.strptime(end_time, '%Y-%m-%d')
-            self._sql = self._sql.filter(Notice.create_at <= end)
+            self._sql_all = self._sql_all.filter(Notice.create_at <= end)
         if notice_type is not None:
-            self._sql = self._sql.filter(Notice.type == notice_type)
+            self._sql_all = self._sql_all.filter(Notice.type == notice_type)
+        self._sql_all = self._sql_all.filter(Notice.delete_at.is_(None))
 
-        count = self._sql.count()
-        data = self._sql.order_by(Notice.is_top.desc()).limit(limit).offset(page * limit).all()
+        count = self._sql_all.count()
+        data = self._sql_all.order_by(Notice.is_top.desc()).limit(limit).offset(page * limit).all()
 
         res = []
         for item in data:
             res.append({
+                'id': item.id,
                 'title': item.title,
                 'create_at': item.create_at.strftime('%Y-%m-%d'),
                 'user': item.user.nickname
@@ -37,27 +43,55 @@ class IGetNotice:
 
         return count, res
 
+    def _get_detail_sql(self, notice_id):
+        temp = self._sql_detail.filter(Notice.id == notice_id).filter(Notice.delete_at.is_(None)).first()
+
+        if temp is None:
+            raise RuntimeError('not found record')
+
+        return {
+            'id': temp.id,
+            'title': temp.title,
+            'content': temp.content,
+            'create_at': temp.create_at.strftime('%Y-%m-%d'),
+            'user': temp.user.nickname,
+            'is_top': temp.is_top
+        }
+
 
 # root用户获取通知
 class GetNoticeRoot(IGetNotice):
-    def get_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
-        self._sql = Notice.query
-        return self._get_sql(limit, page, start_time, end_time, notice_type)
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+        self._sql_all = Notice.query
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+
+    def get_detail(self, user_id, notice_id):
+        self._sql_detail = Notice.query
+        return self._get_detail_sql(notice_id)
 
 
 # 管理员获取通知
 class GetNoticeAdmin(IGetNotice):
-    def get_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
-        self._sql = Notice.query.filter(Notice.user_id == user_id)
-        return self._get_sql(limit, page, start_time, end_time, notice_type)
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+        self._sql_all = Notice.query.filter(Notice.user_id == user_id)
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+
+    def get_detail(self, user_id, notice_id):
+        self._sql_detail = Notice.query.filter(Notice.user_id == user_id)
+        return self._get_detail_sql(notice_id)
 
 
 # 设计师获取通知
 class GetNoticeDesigner(IGetNotice):
-    def get_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
         parent = User.query.filter(User.id == user_id).first().parent_id
-        self._sql = Notice.query.filter(Notice.user_id == parent)
-        return self._get_sql(limit, page, start_time, end_time, notice_type)
+        self._sql_all = Notice.query.filter(Notice.user_id == parent)
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+
+    def get_detail(self, user_id, notice_id):
+        parent = User.query.filter(User.id == user_id).first().parent_id
+        self._sql_detail = Notice.query.filter(Notice.user_id == parent)
+        return self._get_detail_sql(notice_id)
 
 
 # 工厂函数
@@ -72,5 +106,8 @@ class GetNotice:
         else:
             raise RuntimeError('user error')
 
-    def get_res(self, user_id, limit, page, start_time, end_time, notice_type):
-        return self._get_res.get_result(user_id, limit, page, start_time, end_time, notice_type)
+    def get_all_res(self, user_id, limit, page, start_time, end_time, notice_type):
+        return self._get_res.get_all_result(user_id, limit, page, start_time, end_time, notice_type)
+
+    def get_detail_res(self, user_id, notice_id):
+        return self._get_res.get_detail(user_id, notice_id)

@@ -10,6 +10,10 @@ notice_page = Blueprint('notice', __name__, url_prefix='/notice')
 @notice_page.route('', methods=['GET'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def notice_get():
+    """
+    获取通知
+    :return:
+    """
     user_id = session['user_id']
     role = session['type']
     limit = request.args.get('limit') if request.args.get('limit') is not None else 20
@@ -19,7 +23,7 @@ def notice_get():
     notice_type = request.args.get('type')
 
     try:
-        count, res = GetNotice(role).get_res(user_id, limit, page, start_time, end_time, notice_type)
+        count, res = GetNotice(role).get_all_res(user_id, limit, page, start_time, end_time, notice_type)
         current_app.logger.info({
             'count': count,
             'notice': res
@@ -34,3 +38,36 @@ def notice_get():
     except RuntimeError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
+
+
+@notice_page.route('/<int:notice_id>', methods=['GET'])
+@auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
+def notice_get_detail(notice_id: int):
+    """
+    获取通知详情
+    :param notice_id:
+    :return:
+    """
+    user_id = session['user_id']
+    role = session['type']
+    try:
+        res = GetNotice(role).get_detail_res(user_id, notice_id)
+        current_app.logger.info({
+            'notice': res
+        })
+        return success_warp(res)
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+
+# @notice_page.route('', methods=['POST'])
+# @auth_require(Permission.ROOT | Permission.ADMIN)
+# def notice_post():
+#     """
+#     添加通知
+#     :return:
+#     """
+#     return 123
