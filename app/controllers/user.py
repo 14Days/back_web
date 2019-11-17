@@ -14,6 +14,7 @@ from app.models.user import add_user, \
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 from app.utils.md5 import encode_md5, file_md5
+from app.utils.compression import compress
 
 user_page = Blueprint('user', __name__, url_prefix='/user')
 
@@ -212,9 +213,11 @@ def upload_post():
 
     file_path = pathlib.Path.joinpath(_UPLOAD_FOLDER, f.filename)
     f.save(str(file_path))
+    # 压缩图片
+    new_path = compress(str(file_path))
 
     # 文件重命名
-    name = file_md5(file_path) + '.' + f.filename.rsplit('.', 1)[1].lower()
+    name = file_md5(new_path) + '.jpg'
     os.rename(
         str(file_path),
         str(pathlib.Path.joinpath(_UPLOAD_FOLDER, name))
