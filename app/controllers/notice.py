@@ -73,6 +73,7 @@ def notice_post():
     :return:
     """
     user_id = session['user_id']
+    role = session['type']
     data = request.json
 
     title = data.get('title')
@@ -91,4 +92,19 @@ def notice_post():
         }))
         return fail_warp(errors['101']), 400
 
-
+    try:
+        GetNotice(role).post_notice(title, content, is_top, notice_type, user_id)
+        current_app.logger.info({
+            'title': title,
+            'content': content,
+            'type': notice_type,
+            'is_top': is_top,
+            'user_id': user_id
+        })
+        return success_warp('add notice success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500

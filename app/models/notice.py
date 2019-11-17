@@ -1,6 +1,6 @@
 import datetime
 from sqlalchemy import or_
-from app.models import session_commit
+from app.models import db, session_commit
 from app.models.model import Notice, User
 from app.utils.errors import errors
 
@@ -18,6 +18,9 @@ class INotice:
         pass
 
     def get_detail(self, user_id, notice_id):
+        pass
+
+    def post_notice(self, title, content, is_top, notice_type, user_id):
         pass
 
     def _get_all_sql(self, limit, page, start_time, end_time, notice_type) -> (int, list):
@@ -61,6 +64,19 @@ class INotice:
             'type': temp.type
         }
 
+    @staticmethod
+    def _post_notice(title, content, is_top, notice_type, user_id):
+        notice = Notice(
+            title=title,
+            content=content,
+            is_top=is_top,
+            type=notice_type,
+            user_id=user_id
+        )
+
+        db.session.add(notice)
+        session_commit()
+
 
 # root用户获取通知
 class NoticeRoot(INotice):
@@ -72,28 +88,48 @@ class NoticeRoot(INotice):
         self._sql_detail = Notice.query
         return self._get_detail_sql(notice_id)
 
+    def post_notice(self, title, content, is_top, notice_type, user_id):
+        self._post_notice(title, content, is_top, notice_type, user_id)
+
 
 # 管理员获取通知
 class NoticeAdmin(INotice):
     def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
-        self._sql_all = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 2))
+        self._sql_all = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 1))
         return self._get_all_sql(limit, page, start_time, end_time, notice_type)
 
     def get_detail(self, user_id, notice_id):
-        self._sql_detail = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 2))
+        self._sql_detail = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 1))
         return self._get_detail_sql(notice_id)
+
+    def post_notice(self, title, content, is_top, notice_type, user_id):
+        if notice_type == 1:
+            raise RuntimeError(errors['403'])
+        self._post_notice(title, content, is_top, notice_type, user_id)
 
 
 # 设计师获取通知
 class NoticeDesigner(INotice):
-    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    @staticmethod
+    def _initial(user_id):
+        root = User.query.filter(User.role == 1).first().parent_id
         parent = User.query.filter(User.id == user_id).first().parent_id
-        self._sql_all = Notice.query.filter(Notice.user_id == parent).filter(Notice.type == 3)
+
+        return root, parent
+
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+        root, parent = self._initial(user_id)
+        self._sql_all = Notice.query. \
+            filter(or_(Notice.user_id == parent, Notice.user_id == root)). \
+            filter(Notice.type == 2)
+
         return self._get_all_sql(limit, page, start_time, end_time, notice_type)
 
     def get_detail(self, user_id, notice_id):
-        parent = User.query.filter(User.id == user_id).first().parent_id
-        self._sql_detail = Notice.query.filter(Notice.user_id == parent).filter(Notice.type == 3)
+        root, parent = self._initial(user_id)
+        self._sql_detail = Notice.query. \
+            filter(or_(Notice.user_id == parent, Notice.user_id == root)). \
+            filter(Notice.type == 2)
         return self._get_detail_sql(notice_id)
 
 
@@ -114,3 +150,6 @@ class GetNotice:
 
     def get_detail_res(self, user_id, notice_id):
         return self._get_res.get_detail(user_id, notice_id)
+
+    def post_notice(self, title, content, is_top, notice_type, user_id):
+        self._get_res.post_notice(title, content, is_top, notice_type, user_id)
