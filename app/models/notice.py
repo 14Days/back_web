@@ -1,4 +1,5 @@
 import datetime
+from sqlalchemy import or_
 from app.models import session_commit
 from app.models.model import Notice, User
 from app.utils.errors import errors
@@ -9,7 +10,7 @@ from app.utils.errors import errors
 
 
 # 获取通知
-class IGetNotice:
+class INotice:
     _sql_all = None
     _sql_detail = None
 
@@ -56,12 +57,13 @@ class IGetNotice:
             'content': temp.content,
             'create_at': temp.create_at.strftime('%Y-%m-%d'),
             'user': temp.user.nickname,
-            'is_top': temp.is_top
+            'is_top': temp.is_top,
+            'type': temp.type
         }
 
 
 # root用户获取通知
-class GetNoticeRoot(IGetNotice):
+class NoticeRoot(INotice):
     def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
         self._sql_all = Notice.query
         return self._get_all_sql(limit, page, start_time, end_time, notice_type)
@@ -72,26 +74,26 @@ class GetNoticeRoot(IGetNotice):
 
 
 # 管理员获取通知
-class GetNoticeAdmin(IGetNotice):
+class NoticeAdmin(INotice):
     def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
-        self._sql_all = Notice.query.filter(Notice.user_id == user_id)
+        self._sql_all = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 2))
         return self._get_all_sql(limit, page, start_time, end_time, notice_type)
 
     def get_detail(self, user_id, notice_id):
-        self._sql_detail = Notice.query.filter(Notice.user_id == user_id)
+        self._sql_detail = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 2))
         return self._get_detail_sql(notice_id)
 
 
 # 设计师获取通知
-class GetNoticeDesigner(IGetNotice):
+class NoticeDesigner(INotice):
     def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
         parent = User.query.filter(User.id == user_id).first().parent_id
-        self._sql_all = Notice.query.filter(Notice.user_id == parent)
+        self._sql_all = Notice.query.filter(Notice.user_id == parent).filter(Notice.type == 3)
         return self._get_all_sql(limit, page, start_time, end_time, notice_type)
 
     def get_detail(self, user_id, notice_id):
         parent = User.query.filter(User.id == user_id).first().parent_id
-        self._sql_detail = Notice.query.filter(Notice.user_id == parent)
+        self._sql_detail = Notice.query.filter(Notice.user_id == parent).filter(Notice.type == 3)
         return self._get_detail_sql(notice_id)
 
 
@@ -99,11 +101,11 @@ class GetNoticeDesigner(IGetNotice):
 class GetNotice:
     def __init__(self, role):
         if role == 1:
-            self._get_res = GetNoticeRoot()
+            self._get_res = NoticeRoot()
         elif role == 2:
-            self._get_res = GetNoticeAdmin()
+            self._get_res = NoticeAdmin()
         elif role == 3:
-            self._get_res = GetNoticeDesigner()
+            self._get_res = NoticeDesigner()
         else:
             raise RuntimeError(errors['402'])
 

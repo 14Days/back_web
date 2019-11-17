@@ -3,6 +3,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.models.notice import GetNotice
 from app.utils.warp import success_warp, fail_warp
 from app.utils.auth import auth_require, Permission
+from app.utils.errors import errors
 
 notice_page = Blueprint('notice', __name__, url_prefix='/notice')
 
@@ -71,4 +72,23 @@ def notice_post():
     添加通知
     :return:
     """
-    return 123
+    user_id = session['user_id']
+    data = request.json
+
+    title = data.get('title')
+    content = data.get('content')
+    notice_type = data.get('type')
+    is_top = data.get('is_top')
+
+    if title is None or title == '' or \
+            notice_type is None or is_top is None:
+        current_app.logger.error('params error %s', str({
+            'title': title,
+            'content': content,
+            'type': notice_type,
+            'is_top': is_top,
+            'user_id': user_id
+        }))
+        return fail_warp(errors['101']), 400
+
+
