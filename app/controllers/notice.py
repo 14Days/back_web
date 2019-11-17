@@ -63,11 +63,12 @@ def notice_get_detail(notice_id: int):
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
 
-# @notice_page.route('', methods=['POST'])
-# @auth_require(Permission.ROOT | Permission.ADMIN)
-# def notice_post():
-#     """
-#     添加通知
-#     :return:
-#     """
-#     return 123
+
+@notice_page.route('', methods=['POST'])
+@auth_require(Permission.ROOT | Permission.ADMIN)
+def notice_post():
+    """
+    添加通知
+    :return:
+    """
+    return 123

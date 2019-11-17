@@ -1,6 +1,7 @@
 import datetime
 from app.models import session_commit
 from app.models.model import Notice, User
+from app.utils.errors import errors
 
 """
 定义通知获取（抽象工厂）
@@ -47,7 +48,7 @@ class IGetNotice:
         temp = self._sql_detail.filter(Notice.id == notice_id).filter(Notice.delete_at.is_(None)).first()
 
         if temp is None:
-            raise RuntimeError('not found record')
+            raise RuntimeError(errors['501'])
 
         return {
             'id': temp.id,
@@ -104,7 +105,7 @@ class GetNotice:
         elif role == 3:
             self._get_res = GetNoticeDesigner()
         else:
-            raise RuntimeError('user error')
+            raise RuntimeError(errors['402'])
 
     def get_all_res(self, user_id, limit, page, start_time, end_time, notice_type):
         return self._get_res.get_all_result(user_id, limit, page, start_time, end_time, notice_type)

@@ -1,6 +1,7 @@
 import datetime
 from app.models import db, session_commit
 from app.models.model import User, Avatar
+from app.utils.errors import errors
 
 
 def check_user(username: str):
@@ -12,7 +13,7 @@ def check_user(username: str):
     res = User.query.filter(User.username == username). \
         filter(User.delete_at.is_(None)).first()
     if res is not None:
-        raise RuntimeError('user exist')
+        raise RuntimeError(errors['201'])
 
 
 def add_user(username: str, password: str, parent: int, role: int):
@@ -46,7 +47,7 @@ def delete_user(temp_id: int, user_id: int):
     user = User.query.filter(User.id.in_(temp_id)).all()
     for item in user:
         if item.parent_id != user_id:
-            raise RuntimeError('no auth')
+            raise RuntimeError(errors['403'])
 
     for item in user:
         item.delete_at = datetime.datetime.now()
@@ -98,7 +99,7 @@ def get_user_detail(user_id, this_user):
         first()
 
     if user is None:
-        raise RuntimeError('没有此用户')
+        raise RuntimeError(errors['201'])
 
     avatar = None
     if len(user.avatar) == 0:
@@ -154,18 +155,18 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
         first()
 
     if user is None:
-        raise RuntimeError('user not exist')
+        raise RuntimeError(errors['201'])
 
     if user.id != user_id and user.parent_id != user_id:
-        raise RuntimeError('no auth')
+        raise RuntimeError(errors['403'])
     if avatar['old_id'] != avatar['new_id']:
         old_avatar = Avatar.query.filter_by(id=avatar['old_id']).first()
         if old_avatar.user_id != this_user:
-            raise RuntimeError('no auth')
+            raise RuntimeError(errors['403'])
 
         new_avatar = Avatar.query.filter_by(id=avatar['new_id']).first()
         if new_avatar.status != 0:
-            raise RuntimeError('no auth')
+            raise RuntimeError(errors['403'])
 
         old_avatar.status = 2
         new_avatar.status, new_avatar.user_id = 1, this_user
@@ -190,16 +191,16 @@ def change_password(user_id, this_user, new_password, old_password):
         first()
 
     if user is None:
-        raise RuntimeError('user not exist')
+        raise RuntimeError(errors['201'])
 
     if user.id == user_id:
         if old_password == user.password:
             user.password = new_password
             session_commit()
         else:
-            raise RuntimeError('old password error')
+            raise RuntimeError(errors['202'])
     elif user.parent_id == user_id:
         user.password = new_password
         session_commit()
     else:
-        raise RuntimeError('no auth')
+        raise RuntimeError(errors['403'])
