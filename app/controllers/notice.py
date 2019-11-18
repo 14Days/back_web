@@ -108,3 +108,37 @@ def notice_post():
     except RuntimeError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
+
+
+@notice_page.route('', methods=['DELETE'])
+@auth_require(Permission.ROOT | Permission.ADMIN)
+def notice_delete():
+    """
+    删除通知接口
+    :return:
+    """
+    user_id = session['user_id']
+    role = session['type']
+
+    data = request.json
+    notice_id = data.get('notice_id')
+
+    if notice_id is None or type(notice_id) != list:
+        current_app.logger.error('params error %s', str({
+            'notice_id': notice_id
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        GetNotice(role).delete_notice(user_id, notice_id)
+        current_app.logger.info('delete notice success %s', str({
+            'notice_id': notice_id,
+            'user_id': user_id
+        }))
+        return success_warp('delete notice success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500

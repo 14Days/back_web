@@ -44,3 +44,20 @@ class TestNotice:
             assert rv.status_code == code
             data = rv.get_json()
             assert data['status'] == msg
+
+    @pytest.mark.parametrize(
+        ('username', 'password', 'code', 'msg', 'notice'),
+        (('root', '123456', 200, 'success', [5]),
+         ('gyk', '123456', 500, 'error', [6]),
+         ('zjg123', '123456', 401, 'error', []))
+    )
+    def test_delete_notice(self, client, auth_client, username, password, code, msg, notice):
+        auth_client.login(username, password)
+
+        with client:
+            rv = client.delete('/notice', json={
+                'notice_id': notice
+            })
+            assert rv.status_code == code
+            data = rv.get_json()
+            assert data['status'] == msg
