@@ -142,3 +142,44 @@ def notice_delete():
     except RuntimeError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
+
+
+@notice_page.route('/<int:notice_id>', methods=['PUT'])
+@auth_require(Permission.ROOT | Permission.ADMIN)
+def notice_put(notice_id: int):
+    user_id = session['user_id']
+    role = session['type']
+    data = request.json
+
+    title = data.get('title')
+    content = data.get('content')
+    notice_type = data.get('type')
+    is_top = data.get('is_top')
+
+    if title is None or title == '' or \
+            notice_type is None or is_top is None:
+        current_app.logger.error('params error %s', str({
+            'title': title,
+            'content': content,
+            'type': notice_type,
+            'is_top': is_top,
+            'user_id': user_id
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        GetNotice(role).put_notice(title, content, is_top, notice_type, user_id, notice_id)
+        current_app.logger.info({
+            'title': title,
+            'content': content,
+            'type': notice_type,
+            'is_top': is_top,
+            'user_id': user_id
+        })
+        return success_warp('put notice success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500

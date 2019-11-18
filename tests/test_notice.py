@@ -61,3 +61,22 @@ class TestNotice:
             assert rv.status_code == code
             data = rv.get_json()
             assert data['status'] == msg
+
+    @pytest.mark.parametrize(
+        ('username', 'password', 'code', 'msg'),
+        (('root', '123456', 200, 'success'),
+         ('gyk', '123456', 500, 'error'),
+         ('zjg123', '123456', 401, 'error'))
+    )
+    def test_put_notice(self, client, auth_client, username, password, code, msg):
+        auth_client.login(username, password)
+
+        with client:
+            rv = client.put('/notice/4', json={
+                'title': 'test',
+                'is_top': '0',
+                'type': 2
+            })
+            assert rv.status_code == code
+            data = rv.get_json()
+            assert data['status'] == msg

@@ -51,6 +51,9 @@ class INotice:
     def delete_notice(self, user_id: int, notice_id: list):
         pass
 
+    def put_notice(self, title, content, is_top, notice_type, user_id, notice_id):
+        pass
+
     def _get_all_sql(self, limit, page, start_time, end_time, notice_type) -> (int, list):
         """
         用户获取通知的基本处理函数，主要处理搜索条件
@@ -128,6 +131,14 @@ class INotice:
         db.session.add(notice)
         session_commit()
 
+    @staticmethod
+    def _put_notice(title, content, is_top, notice_type, notice: Notice):
+        notice.title = title
+        notice.content = content
+        notice.is_top = is_top
+        notice.type = notice_type
+        session_commit()
+
 
 class NoticeRoot(INotice):
     """
@@ -150,6 +161,10 @@ class NoticeRoot(INotice):
         for item in notice:
             item.delete_at = datetime.datetime.now()
         session_commit()
+
+    def put_notice(self, title, content, is_top, notice_type, user_id, notice_id):
+        notice = Notice.query.filter(Notice.id == notice_id).first()
+        self._put_notice(title, content, is_top, notice_type, notice)
 
 
 class NoticeAdmin(INotice):
@@ -180,6 +195,13 @@ class NoticeAdmin(INotice):
         for item in notice:
             item.delete_at = datetime.datetime.now()
         session_commit()
+
+    def put_notice(self, title, content, is_top, notice_type, user_id, notice_id):
+        notice = Notice.query.filter(Notice.id == notice_id).filter(Notice.user_id == user_id).first()
+        if notice is None:
+            raise RuntimeError(errors['403'])
+
+        self._put_notice(title, content, is_top, notice_type, notice)
 
 
 class NoticeDesigner(INotice):
@@ -236,3 +258,6 @@ class GetNotice:
 
     def delete_notice(self, user_id, notice_id):
         self._get_res.delete_notice(user_id, notice_id)
+
+    def put_notice(self, title, content, is_top, notice_type, user_id, notice_id):
+        self._get_res.put_notice(title, content, is_top, notice_type, user_id, notice_id)
