@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, current_app
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.recommend import save_img
+from app.models.recommend import save_img, GetRecommend
 from app.utils.auth import auth_require, Permission
 from app.utils.img import allowed_file, deal_img
 from app.utils.warp import success_warp, fail_warp
@@ -22,9 +22,31 @@ def recommend_post():
     发送推荐消息
     :return:
     """
+    role = session['type']
     data = request.json
-    # content =
-    # if
+    content = data.get('content')
+    img = data.get('img')
+
+    if img is None or type(img) != list:
+        current_app.logger.info('recommend info %s', str({
+            'content': content,
+            'img': img
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        GetRecommend(role).post_recommend(content, img)
+        current_app.logger.info('recommend info %s', str({
+            'content': content,
+            'img': img
+        }))
+        return success_warp('add recommend success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
 
 
 @recommend_page.route('/upload', methods=['POST'])
