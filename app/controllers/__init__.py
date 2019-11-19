@@ -4,6 +4,7 @@ from app.controllers.login import login_page
 from app.controllers.user import user_page
 from app.controllers.notice import notice_page
 from app.controllers.recommend import recommend_page
+from app.controllers.params import params_page
 
 
 def register_router(app: Flask):
@@ -21,3 +22,7 @@ def register_router(app: Flask):
     # 推荐消息路由
     auth_mid(recommend_page)
     app.register_blueprint(recommend_page)
+
+    # 查询参数
+    auth_mid(params_page)
+    app.register_blueprint(params_page)
