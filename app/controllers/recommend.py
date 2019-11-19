@@ -24,6 +24,10 @@ def recommend_post():
 @recommend_page.route('/upload', methods=['POST'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def upload_img():
+    """
+    上传推荐消息图片
+    :return:
+    """
     f = request.files.get('img')
     # 校验存在性
     if f is None:

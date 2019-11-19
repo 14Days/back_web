@@ -37,7 +37,8 @@ def login_post():
                 'type': res.role
             }))
             return success_warp({
-                'type': res.role
+                'type': res.role,
+                'user_id': res.id
             })
         else:
             current_app.logger.error('login fail %s', str({
