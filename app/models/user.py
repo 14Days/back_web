@@ -85,18 +85,24 @@ def get_user(user_id: int, username) -> (list, int):
     return user, count
 
 
-def get_user_detail(user_id, this_user):
+def get_user_detail(user_id, this_user, role):
     """
     获取某一用户的详细信息
     :param user_id:
     :param this_user:
     :return:
     """
-    user = User.query. \
-        filter(User.id == this_user). \
-        filter(User.parent_id == user_id). \
-        filter(User.delete_at.is_(None)). \
-        first()
+    if role == 1:
+        user = User.query. \
+            filter(User.id == this_user). \
+            filter(User.delete_at.is_(None)). \
+            first()
+    else:
+        user = User.query. \
+            filter(User.id == this_user). \
+            filter(User.parent_id == user_id). \
+            filter(User.delete_at.is_(None)). \
+            first()
 
     if user is None:
         raise RuntimeError(errors['201'])

@@ -51,8 +51,9 @@ def user_get_detail(this_user):
     :return:
     """
     user_id = session['user_id']
+    role = session['type']
     try:
-        user = get_user_detail(user_id, this_user)
+        user = get_user_detail(user_id, this_user, role)
         current_app.logger.info('user detail %s', str(user))
         return success_warp(user)
     except SQLAlchemyError as e:
