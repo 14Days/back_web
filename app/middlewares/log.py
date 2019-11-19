@@ -15,6 +15,7 @@ def log_mid(app: Flask):
     def after_log(response: Response):
         app.logger.info({
             'status': response.status_code,
-            'body': response.json
+            'body': response.json,
+            'header': response.headers
         })
         return response
