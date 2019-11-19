@@ -1,5 +1,3 @@
-import os
-import pathlib
 from flask import Blueprint, request, current_app, session
 from app.utils.auth import auth_require, Permission
 from sqlalchemy.exc import SQLAlchemyError
@@ -13,8 +11,8 @@ from app.models.user import add_user, \
     change_password
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
-from app.utils.md5 import encode_md5, file_md5
-from app.utils.compression import compress
+from app.utils.md5 import encode_md5
+from app.utils.img import deal_img, allowed_file
 
 user_page = Blueprint('user', __name__, url_prefix='/user')
 
@@ -195,13 +193,6 @@ def upload_post():
     上传头像
     :return:
     """
-    _UPLOAD_FOLDER = pathlib.Path.joinpath(pathlib.Path(__file__).parent.parent.parent, 'avatar')
-    _ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-
-    def allowed_file(filename):
-        return '.' in filename and \
-               filename.rsplit('.', 1)[1].lower() in _ALLOWED_EXTENSIONS
-
     f = request.files.get('avatar')
     # 校验存在性
     if f is None:
@@ -211,17 +202,7 @@ def upload_post():
         current_app.logger.error('file error')
         return fail_warp(errors['102']), 400
 
-    file_path = pathlib.Path.joinpath(_UPLOAD_FOLDER, f.filename)
-    f.save(str(file_path))
-    # 压缩图片
-    new_path = compress(str(file_path))
-
-    # 文件重命名
-    name = file_md5(new_path) + '.jpg'
-    os.rename(
-        str(file_path),
-        str(pathlib.Path.joinpath(_UPLOAD_FOLDER, name))
-    )
+    name = deal_img('avatar', f)
 
     try:
         avatar = save_avatar(name)

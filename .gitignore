@@ -18,5 +18,10 @@ avatar/*.png
 avatar/*.jpeg
 avatar/*.gif
 
+img/*.jpg
+img/*.png
+img/*.jpeg
+img/*.gif
+
 # 测试文件
 .pytest_cache

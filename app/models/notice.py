@@ -83,7 +83,9 @@ class INotice:
                 'id': item.id,
                 'title': item.title,
                 'create_at': item.create_at.strftime('%Y-%m-%d'),
-                'user': item.user.nickname
+                'user': item.user.nickname,
+                'is_top': item.is_top,
+                'user_type': item.user.role
             })
 
         return count, res
