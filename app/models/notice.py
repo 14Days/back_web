@@ -14,9 +14,10 @@ class INotice:
     _sql_all = None
     _sql_detail = None
 
-    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type, title) -> (int, list):
         """
         得到用户权限下的所有结果
+        :param title:
         :param user_id:
         :param limit:
         :param page:
@@ -54,7 +55,7 @@ class INotice:
     def put_notice(self, title, content, is_top, notice_type, user_id, notice_id):
         pass
 
-    def _get_all_sql(self, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def _get_all_sql(self, limit, page, start_time, end_time, notice_type, title) -> (int, list):
         """
         用户获取通知的基本处理函数，主要处理搜索条件
         :param limit:
@@ -72,6 +73,8 @@ class INotice:
             self._sql_all = self._sql_all.filter(Notice.create_at <= end)
         if notice_type is not None:
             self._sql_all = self._sql_all.filter(Notice.type == notice_type)
+        if title is not None:
+            self._sql_all = self._sql_all.filter(Notice.title.like('%{}%'.format(title)))
         self._sql_all = self._sql_all.filter(Notice.delete_at.is_(None))
 
         count = self._sql_all.count()
@@ -82,6 +85,7 @@ class INotice:
             res.append({
                 'id': item.id,
                 'title': item.title,
+                'content': item.content,
                 'create_at': item.create_at.strftime('%Y-%m-%d'),
                 'user': item.user.nickname,
                 'is_top': item.is_top,
@@ -147,9 +151,9 @@ class NoticeRoot(INotice):
     root用户控制类
     """
 
-    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type, title) -> (int, list):
         self._sql_all = Notice.query
-        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type, title)
 
     def get_detail(self, user_id, notice_id):
         self._sql_detail = Notice.query
@@ -174,9 +178,9 @@ class NoticeAdmin(INotice):
     管理员控制类
     """
 
-    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type, title) -> (int, list):
         self._sql_all = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 1))
-        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type, title)
 
     def get_detail(self, user_id, notice_id):
         self._sql_detail = Notice.query.filter(or_(Notice.user_id == user_id, Notice.type == 1))
@@ -218,13 +222,13 @@ class NoticeDesigner(INotice):
 
         return root, parent
 
-    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type) -> (int, list):
+    def get_all_result(self, user_id, limit, page, start_time, end_time, notice_type, title) -> (int, list):
         root, parent = self._initial(user_id)
         self._sql_all = Notice.query. \
             filter(or_(Notice.user_id == parent, Notice.user_id == root)). \
             filter(Notice.type == 2)
 
-        return self._get_all_sql(limit, page, start_time, end_time, notice_type)
+        return self._get_all_sql(limit, page, start_time, end_time, notice_type, title)
 
     def get_detail(self, user_id, notice_id):
         root, parent = self._initial(user_id)
@@ -249,8 +253,8 @@ class GetNotice:
         else:
             raise RuntimeError(errors['402'])
 
-    def get_all_res(self, user_id, limit, page, start_time, end_time, notice_type):
-        return self._get_res.get_all_result(user_id, limit, page, start_time, end_time, notice_type)
+    def get_all_res(self, user_id, limit, page, start_time, end_time, notice_type, title):
+        return self._get_res.get_all_result(user_id, limit, page, start_time, end_time, notice_type, title)
 
     def get_detail_res(self, user_id, notice_id):
         return self._get_res.get_detail(user_id, notice_id)

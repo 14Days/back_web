@@ -39,7 +39,8 @@ def recommend_post():
         GetRecommend(role).post_recommend(content, img, user_id)
         current_app.logger.info('recommend info %s', str({
             'content': content,
-            'img': img
+            'img': img,
+            'user_id': user_id
         }))
         return success_warp('add recommend success')
     except SQLAlchemyError as e:

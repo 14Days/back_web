@@ -22,9 +22,11 @@ def notice_get():
     start_time = request.args.get('start_time')
     end_time = request.args.get('end_time')
     notice_type = request.args.get('type')
+    title = request.args.get('title')
 
     try:
-        count, res = GetNotice(role).get_all_res(user_id, limit, page, start_time, end_time, notice_type)
+        count, res = GetNotice(role). \
+            get_all_res(user_id, limit, page, start_time, end_time, notice_type, title)
         current_app.logger.info({
             'count': count,
             'notice': res
