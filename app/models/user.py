@@ -76,6 +76,7 @@ def get_user(user_id: int, username) -> (list, int):
     user = []
     for item in temp:
         user.append({
+            'id': item.id,
             'username': item.username,
             'nickname': item.nickname,
             'create_at': item.create_at.strftime('%Y-%m-%d %H:%M:%S'),
