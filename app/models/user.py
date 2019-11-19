@@ -88,6 +88,7 @@ def get_user(user_id: int, username) -> (list, int):
 def get_user_detail(user_id, this_user, role):
     """
     获取某一用户的详细信息
+    :param role: 
     :param user_id:
     :param this_user:
     :return:
