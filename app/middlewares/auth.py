@@ -9,7 +9,7 @@ def auth_mid(page: Blueprint):
         user_id = session.get('user_id')
 
         if user_id is None and request.method != 'OPTIONS':
-            return fail_warp(errors['402'])
+            return fail_warp(errors['402']), 401
 
         # if user_type > role:
         #     return fail_warp(errors['403']), 401
