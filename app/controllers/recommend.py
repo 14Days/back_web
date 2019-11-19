@@ -22,6 +22,7 @@ def recommend_post():
     发送推荐消息
     :return:
     """
+    user_id = session['user_id']
     role = session['type']
     data = request.json
     content = data.get('content')
@@ -35,7 +36,7 @@ def recommend_post():
         return fail_warp(errors['101']), 400
 
     try:
-        GetRecommend(role).post_recommend(content, img)
+        GetRecommend(role).post_recommend(content, img, user_id)
         current_app.logger.info('recommend info %s', str({
             'content': content,
             'img': img

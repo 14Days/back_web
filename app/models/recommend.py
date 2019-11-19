@@ -23,7 +23,7 @@ class IRecommend:
     def get_recommend(self):
         pass
 
-    def post_recommend(self, content: str, img: list):
+    def post_recommend(self, content: str, img: list, user_id: int):
         pass
 
     def delete_recommend(self):
@@ -33,7 +33,7 @@ class IRecommend:
         pass
 
     @staticmethod
-    def _post_recommend(content: str, img: list):
+    def _post_recommend(content: str, img: list, user_id: int):
         """
         发布推荐消息推荐类
         :param content:
@@ -42,7 +42,8 @@ class IRecommend:
         """
         recommend = Recommend(
             content=content,
-            img=img
+            img=img,
+            user_id=user_id
         )
 
         db.session.add(recommend)
@@ -54,8 +55,8 @@ class RecommendRoot(IRecommend):
     Root用户控制类
     """
 
-    def post_recommend(self, content: str, img: list):
-        self._post_recommend(content, img)
+    def post_recommend(self, content: str, img: list, user_id: int):
+        self._post_recommend(content, img, user_id)
 
 
 class RecommendAdmin(IRecommend):
@@ -63,8 +64,8 @@ class RecommendAdmin(IRecommend):
     Admin用户控制类
     """
 
-    def post_recommend(self, content: str, img: list):
-        self._post_recommend(content, img)
+    def post_recommend(self, content: str, img: list, user_id: int):
+        self._post_recommend(content, img, user_id)
 
 
 class RecommendDesigner(IRecommend):
@@ -72,8 +73,8 @@ class RecommendDesigner(IRecommend):
     设计师控制类
     """
 
-    def post_recommend(self, content: str, img: list):
-        self._post_recommend(content, img)
+    def post_recommend(self, content: str, img: list, user_id: int):
+        self._post_recommend(content, img, user_id)
 
 
 class GetRecommend:
@@ -87,5 +88,5 @@ class GetRecommend:
         else:
             raise RuntimeError(errors['402'])
 
-    def post_recommend(self, content, img):
-        self._get_res.post_recommend(content, img)
+    def post_recommend(self, content, img, user_id):
+        self._get_res.post_recommend(content, img, user_id)
