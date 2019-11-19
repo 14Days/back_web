@@ -10,3 +10,5 @@ def save_img(name):
     db.session.add(img)
     session_commit()
     return img
+
+

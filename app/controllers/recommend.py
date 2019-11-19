@@ -18,7 +18,13 @@ def recommend_get():
 @recommend_page.route('', methods=['POST'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def recommend_post():
-    pass
+    """
+    发送推荐消息
+    :return:
+    """
+    data = request.json
+    # content =
+    # if
 
 
 @recommend_page.route('/upload', methods=['POST'])
