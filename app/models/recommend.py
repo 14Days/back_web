@@ -40,15 +40,12 @@ class IRecommend:
         :param img:
         :return:
         """
-        user = User.query.filter_by(id=user_id)
-        user.recommend.append(
-            Recommend(
-                content=content,
-                # img=img
-            )
-        )
+        image = Img.query.filter(Img.id.in_(img)).first()
+        recommend = Recommend(content=content)
+        recommend.img.append(image)
+        user = User.query.filter_by(id=user_id).first()
+        user.recommend.append(recommend)
 
-        db.session.add(user)
         session_commit()
 
 
