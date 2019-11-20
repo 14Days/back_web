@@ -17,8 +17,8 @@ def notice_get():
     """
     user_id = session['user_id']
     role = session['type']
-    limit = request.args.get('limit') if request.args.get('limit') is not None else 20
-    page = request.args.get('page') if request.args.get('page') is not None else 0
+    limit = int(request.args.get('limit')) if request.args.get('limit') is not None else 20
+    page = int(request.args.get('page')) if request.args.get('page') is not None else 0
     start_time = request.args.get('start_time')
     end_time = request.args.get('end_time')
     notice_type = request.args.get('type')

@@ -1,5 +1,5 @@
 from app.models import db, session_commit
-from app.models.model import Img, Recommend
+from app.models.model import Img, Recommend, User
 from app.utils.errors import errors
 
 
@@ -40,13 +40,15 @@ class IRecommend:
         :param img:
         :return:
         """
-        recommend = Recommend(
-            content=content,
-            img=img,
-            user_id=user_id
+        user = User.query.filter_by(id=user_id)
+        user.recommend.append(
+            Recommend(
+                content=content,
+                # img=img
+            )
         )
 
-        db.session.add(recommend)
+        db.session.add(user)
         session_commit()
 
 
