@@ -13,7 +13,7 @@ def check_user(username: str):
     res = User.query.filter(User.username == username). \
         filter(User.delete_at.is_(None)).first()
     if res is not None:
-        raise RuntimeError(errors['201'])
+        raise RuntimeError(errors['203'])
 
 
 def add_user(username: str, password: str, parent: int, role: int):
@@ -169,7 +169,7 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
         raise RuntimeError(errors['403'])
     if avatar['old_id'] != avatar['new_id']:
         old_avatar = Avatar.query.filter_by(id=avatar['old_id']).first()
-        if old_avatar.user_id != this_user:
+        if old_avatar.user_id != this_user and old_avatar.status != -1:
             raise RuntimeError(errors['403'])
 
         new_avatar = Avatar.query.filter_by(id=avatar['new_id']).first()

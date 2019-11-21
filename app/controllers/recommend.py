@@ -12,7 +12,12 @@ recommend_page = Blueprint('recommend', __name__, url_prefix='/img')
 @recommend_page.route('', methods=['GET'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def recommend_get():
-    pass
+    """
+    获得推荐消息
+    :return:
+    """
+    user_id = session['user_id']
+    role = session['type']
 
 
 @recommend_page.route('', methods=['POST'])
