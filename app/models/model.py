@@ -77,6 +77,8 @@ class AppUser(db.Model):
     create_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
     delete_at = db.Column(db.DateTime, nullable=True)
     avatar = db.relationship('AppAvatar', backref='app_user', lazy=True)
+    top_comment = db.relationship('TopComment', backref='app_user', lazy=True)
+    second_comment = db.relationship('SecondComment', backref='app_user', lazy=True)
 
 
 class AppAvatar(db.Model):

@@ -1,6 +1,6 @@
 import datetime
 from app.models import db, session_commit
-from app.models.model import Img, Recommend, User
+from app.models.model import Img, Recommend, User, AppAvatar
 from app.utils.errors import errors
 
 
@@ -27,6 +27,9 @@ class IRecommend:
     def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
         pass
 
+    def get_recommend_detail(self, user_id, recommend_id):
+        pass
+
     def post_recommend(self, content: str, img: list, user_id: int):
         pass
 
@@ -37,6 +40,16 @@ class IRecommend:
         pass
 
     def _get_recommend(self, limit, page, start_time, end_time, nickname, content):
+        """
+        得到所有通知接口
+        :param limit:
+        :param page:
+        :param start_time:
+        :param end_time:
+        :param nickname:
+        :param content:
+        :return:
+        """
         if start_time is not None:
             start = datetime.datetime.strptime(start_time, '%Y-%m-%d')
             self._sql_all = self._sql_all.filter(Recommend.create_at >= start)
@@ -92,6 +105,95 @@ class IRecommend:
 
         session_commit()
 
+    def _get_recommend_detail(self, recommend_id):
+        """
+        获得推荐消息详情
+        :param recommend_id:
+        :return:
+        """
+        res: Recommend = self._sql_detail.filter(Recommend.id == recommend_id). \
+            filter(Recommend.delete_at.is_(None)).first()
+        # 是否存在
+        if res is None:
+            raise RuntimeError(errors['501'])
+
+        # 得到点赞用户
+        thumb_user = []
+        for user in res.thumbs:
+            thumb_user.append({
+                'nickname': user.nickname
+            })
+
+        # 得到评论
+        comment = []
+        for top in res.comment:
+            # 一级评论
+            if top.delete_at is None:
+                # 用户头像
+                top_avatar = AppAvatar.query.filter(AppAvatar.status == -1).first()
+                top_avatars = top.app_user.avatar
+                for item in top_avatars:
+                    if item.status == 1:
+                        top_avatar = item
+                temp_comment = {
+                    'id': top.id,
+                    'content': top.content,
+                    'create_at': top.create_at.strftime('%Y-%m-%d'),
+                    'user': {
+                        'id': top.app_user.id,
+                        'nickname': top.app_user.nickname,
+                        'avatar': top_avatar.name
+                    }
+                }
+                temp_second = []
+                for second in top.second_comment:
+                    if second.delete_at is None:
+                        second_avatar = AppAvatar.query.filter(AppAvatar.status == -1).first()
+                        print(second_avatar)
+                        second_avatars = second.app_user.avatar
+                        for item in second_avatars:
+                            if item.status == 1:
+                                second_avatar = item
+                        temp_second.append({
+                            'id': second.id,
+                            'content': second.content,
+                            'create_at': second.create_at.strftime('%Y-%m-%d'),
+                            'user': {
+                                'id': second.app_user.id,
+                                'nickname': second.app_user.nickname,
+                                'avatar': second_avatar.name
+                            }
+                        })
+                temp_comment['second'] = temp_second
+                comment.append(temp_comment)
+        # 得到图片url
+        temp_img = []
+        for img_item in res.img:
+            if img_item.delete_at is None:
+                temp_img.append({
+                    'id': img_item.id,
+                    'name': img_item.name
+                })
+
+        recommend_avatar = AppAvatar.query.filter(AppAvatar.status == -1).first()
+        recommend_avatars = res.user.avatar
+        for item in recommend_avatars:
+            if item.status == 1:
+                recommend_avatar = item
+
+        return {
+            'id': res.id,
+            'content': res.content,
+            'img': temp_img,
+            'user': {
+                'id': res.user.id,
+                'nickname': res.user.nickname,
+                'avatar': recommend_avatar.name
+            },
+            'create_at': res.create_at.strftime('%Y-%m-%d'),
+            'comment': comment
+        }
+
 
 class RecommendRoot(IRecommend):
     """
@@ -102,6 +204,10 @@ class RecommendRoot(IRecommend):
         self._sql_all = Recommend.query
         return self._get_recommend(limit, page, start_time, end_time, nickname, content)
 
+    def get_recommend_detail(self, user_id, recommend_id):
+        self._sql_detail = Recommend.query
+        return self._get_recommend_detail(recommend_id)
+
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
 
@@ -111,13 +217,23 @@ class RecommendAdmin(IRecommend):
     Admin用户控制类
     """
 
-    def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
+    @staticmethod
+    def _get_user_list(user_id):
         users = User.query.filter(User.parent_id == user_id).all()
         id_list = [user_id]
         for user in users:
             id_list.append(user.id)
+        return id_list
+
+    def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
+        id_list = self._get_user_list(user_id)
         self._sql_all = Recommend.query.filter(Recommend.id.in_(id_list))
         return self._get_recommend(limit, page, start_time, end_time, nickname, content)
+
+    def get_recommend_detail(self, user_id, recommend_id):
+        id_list = self._get_user_list(user_id)
+        self._sql_detail = Recommend.query.filter(Recommend.id.in_(id_list))
+        return self._get_recommend_detail(recommend_id)
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
@@ -131,6 +247,10 @@ class RecommendDesigner(IRecommend):
     def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
         self._sql_all = Recommend.query.filter(Recommend.user_id == user_id)
         return self._get_recommend(limit, page, start_time, end_time, nickname, content)
+
+    def get_recommend_detail(self, user_id, recommend_id):
+        self._sql_detail = Recommend.query.filter(Recommend.user_id == user_id)
+        return self._get_recommend_detail(recommend_id)
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
@@ -149,6 +269,9 @@ class GetRecommend:
 
     def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
         return self._get_res.get_recommend(limit, page, start_time, end_time, nickname, content, user_id)
+
+    def get_recommend_detail(self, user_id, recommend_id):
+        return self._get_res.get_recommend_detail(user_id, recommend_id)
 
     def post_recommend(self, content, img, user_id):
         self._get_res.post_recommend(content, img, user_id)

@@ -28,10 +28,39 @@ def recommend_get():
 
     try:
         count, res = GetRecommend(role).get_recommend(limit, page, start_time, end_time, nickname, content, user_id)
+        current_app.logger.info({
+            'count': count,
+            'res': res
+        })
         return success_warp({
             'count': count,
             'res': res
         })
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+
+
+@recommend_page.route('/<int:recommend_id>', methods=['GET'])
+@auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
+def recommend_get_detail(recommend_id: int):
+    """
+    获取评论详情
+    :param recommend_id:
+    :return:
+    """
+    user_id = session['user_id']
+    role = session['type']
+
+    try:
+        res = GetRecommend(role).get_recommend_detail(user_id, recommend_id)
+        current_app.logger.info({
+            'recommend': res
+        })
+        return success_warp(res)
     except SQLAlchemyError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
