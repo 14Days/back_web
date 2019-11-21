@@ -136,6 +136,28 @@ def upload_img():
         return fail_warp(errors['501']), 500
 
 
+@recommend_page.route('<int:recommend_id>', methods=['PUT'])
+@auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
+def recommend_put(recommend_id):
+    user_id = session['user_id']
+    role = session['type']
+    data = request.json
+    content = data.get('content')
+    new_img_id = data.get('new_img_id')
+    old_img_id = data.get('old_img_id')
+
+    if new_img_id is None or type(new_img_id) != list or \
+            old_img_id is None or type(old_img_id) != list:
+        current_app.logger.error('put recommend info %s', str({
+            'content': content,
+            'new_img': new_img_id,
+            'old_img': old_img_id
+        }))
+        return fail_warp(errors['101']), 400
+
+
+
+
 @recommend_page.route('', methods=['DELETE'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def recommend_delete():

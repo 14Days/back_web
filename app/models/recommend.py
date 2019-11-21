@@ -23,6 +23,7 @@ def save_img(name):
 class IRecommend:
     _sql_all = None
     _sql_detail = None
+    _sql_put = None
 
     def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
         pass
@@ -36,7 +37,7 @@ class IRecommend:
     def delete_recommend(self, user_id, recommend_ids: list):
         pass
 
-    def put_recommend(self):
+    def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
         pass
 
     def _get_recommend(self, limit, page, start_time, end_time, nickname, content):
@@ -186,13 +187,20 @@ class IRecommend:
         :param img:
         :return:
         """
-        image = Img.query.filter(Img.id.in_(img)).first()
+        image = Img.query.filter(Img.id.in_(img)).all()
         recommend = Recommend(content=content)
-        recommend.img.append(image)
+        recommend.img.extend(image)
         user = User.query.filter_by(id=user_id).first()
         user.recommend.append(recommend)
 
         session_commit()
+
+    def _put_recommend(self, content, new_img_id: list, old_img_id: list, recommend_id: int):
+        recommend = self._sql_put.filter(Recommend.id == recommend_id). \
+            filter(Recommend.delete_at.is_(None)). \
+            first()
+        if recommend is None:
+            raise RuntimeError(errors['501'])
 
 
 class RecommendRoot(IRecommend):
@@ -210,6 +218,9 @@ class RecommendRoot(IRecommend):
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
+
+    def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
+        self._sql_put = Recommend.query
 
     def delete_recommend(self, user_id, recommend_ids: list):
         recommends = Recommend.query.filter(Recommend.id.in_(recommend_ids)).all()
