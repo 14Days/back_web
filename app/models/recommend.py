@@ -202,6 +202,16 @@ class IRecommend:
         if recommend is None:
             raise RuntimeError(errors['501'])
 
+        recommend.content = content
+        old = Img.query.filter(Img.id.in_(old_img_id)).all()
+        for item in old:
+            item.delete_at = datetime.datetime.now()
+        new = Img.query.filter(Img.id.in_(new_img_id)).all()
+        for item in new:
+            item.delete_at = None
+            item.recommend_id = recommend.id
+        session_commit()
+
 
 class RecommendRoot(IRecommend):
     """
@@ -221,6 +231,7 @@ class RecommendRoot(IRecommend):
 
     def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
         self._sql_put = Recommend.query
+        self._put_recommend(content, new_img_id, old_img_id, recommend_id)
 
     def delete_recommend(self, user_id, recommend_ids: list):
         recommends = Recommend.query.filter(Recommend.id.in_(recommend_ids)).all()
@@ -255,6 +266,11 @@ class RecommendAdmin(IRecommend):
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
 
+    def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
+        id_list = self._get_user_list(user_id)
+        self._sql_put = Recommend.query.filter(Recommend.id.in_(id_list))
+        self._put_recommend(content, new_img_id, old_img_id, recommend_id)
+
     def delete_recommend(self, user_id, recommend_ids: list):
         id_list = self._get_user_list(user_id)
         recommends = Recommend.query. \
@@ -281,6 +297,10 @@ class RecommendDesigner(IRecommend):
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
+
+    def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
+        self._sql_put = Recommend.query.filter(Recommend.user_id == user_id)
+        self._put_recommend(content, new_img_id, old_img_id, recommend_id)
 
     def delete_recommend(self, user_id, recommend_ids: list):
         recommends = Recommend.query. \
@@ -311,6 +331,9 @@ class GetRecommend:
 
     def post_recommend(self, content, img, user_id):
         self._get_res.post_recommend(content, img, user_id)
+
+    def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
+        self._get_res.put_recommend(content, new_img_id, old_img_id, user_id, recommend_id)
 
     def delete_recommend(self, user_id, recommend_id):
         self._get_res.delete_recommend(user_id, recommend_id)

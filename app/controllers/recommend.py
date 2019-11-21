@@ -155,7 +155,21 @@ def recommend_put(recommend_id):
         }))
         return fail_warp(errors['101']), 400
 
-
+    try:
+        GetRecommend(role).put_recommend(content, new_img_id, old_img_id, user_id, recommend_id)
+        current_app.logger.info('put recommend %s', str({
+            'content': content,
+            'new_img': new_img_id,
+            'old_img': old_img_id,
+            'recommend': recommend_id
+        }))
+        return success_warp('put recommend success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
 
 
 @recommend_page.route('', methods=['DELETE'])
