@@ -83,7 +83,7 @@ def recommend_post():
     img = data.get('img')
 
     if img is None or type(img) != list:
-        current_app.logger.info('recommend info %s', str({
+        current_app.logger.error('recommend info %s', str({
             'content': content,
             'img': img
         }))
@@ -134,3 +134,30 @@ def upload_img():
     except SQLAlchemyError as e:
         current_app.logger.error(e)
         return fail_warp(errors['501']), 500
+
+
+@recommend_page.route('', methods=['DELETE'])
+@auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
+def recommend_delete():
+    user_id = session['user_id']
+    role = session['type']
+    recommend_ids = request.json.get('recommend_id')
+    if recommend_ids is None or type(recommend_ids) != list:
+        current_app.logger.error('recommend id %s', str({
+            'id': recommend_ids
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        GetRecommend(role).delete_recommend(user_id, recommend_ids)
+        current_app.logger.info('recommend info %s', str({
+            'user_id': user_id,
+            'recommend_ids': recommend_ids
+        }))
+        return success_warp('add recommend success')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500

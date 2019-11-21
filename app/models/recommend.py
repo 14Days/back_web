@@ -33,7 +33,7 @@ class IRecommend:
     def post_recommend(self, content: str, img: list, user_id: int):
         pass
 
-    def delete_recommend(self):
+    def delete_recommend(self, user_id, recommend_ids: list):
         pass
 
     def put_recommend(self):
@@ -88,22 +88,6 @@ class IRecommend:
             res.append(temp)
 
         return count, res
-
-    @staticmethod
-    def _post_recommend(content: str, img: list, user_id: int):
-        """
-        发布推荐消息推荐类
-        :param content:
-        :param img:
-        :return:
-        """
-        image = Img.query.filter(Img.id.in_(img)).first()
-        recommend = Recommend(content=content)
-        recommend.img.append(image)
-        user = User.query.filter_by(id=user_id).first()
-        user.recommend.append(recommend)
-
-        session_commit()
 
     def _get_recommend_detail(self, recommend_id):
         """
@@ -194,6 +178,22 @@ class IRecommend:
             'comment': comment
         }
 
+    @staticmethod
+    def _post_recommend(content: str, img: list, user_id: int):
+        """
+        发布推荐消息推荐类
+        :param content:
+        :param img:
+        :return:
+        """
+        image = Img.query.filter(Img.id.in_(img)).first()
+        recommend = Recommend(content=content)
+        recommend.img.append(image)
+        user = User.query.filter_by(id=user_id).first()
+        user.recommend.append(recommend)
+
+        session_commit()
+
 
 class RecommendRoot(IRecommend):
     """
@@ -210,6 +210,12 @@ class RecommendRoot(IRecommend):
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
+
+    def delete_recommend(self, user_id, recommend_ids: list):
+        recommends = Recommend.query.filter(Recommend.id.in_(recommend_ids)).all()
+        for item in recommends:
+            item.delete_at = datetime.datetime.now()
+        session_commit()
 
 
 class RecommendAdmin(IRecommend):
@@ -238,6 +244,16 @@ class RecommendAdmin(IRecommend):
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
 
+    def delete_recommend(self, user_id, recommend_ids: list):
+        id_list = self._get_user_list(user_id)
+        recommends = Recommend.query. \
+            filter(Recommend.id.in_(recommend_ids)). \
+            filter(Recommend.user_id.in_(id_list)). \
+            all()
+        for item in recommends:
+            item.delete_at = datetime.datetime.now()
+        session_commit()
+
 
 class RecommendDesigner(IRecommend):
     """
@@ -254,6 +270,15 @@ class RecommendDesigner(IRecommend):
 
     def post_recommend(self, content: str, img: list, user_id: int):
         self._post_recommend(content, img, user_id)
+
+    def delete_recommend(self, user_id, recommend_ids: list):
+        recommends = Recommend.query. \
+            filter(Recommend.id.in_(recommend_ids)). \
+            filter(Recommend.user_id == user_id). \
+            all()
+        for item in recommends:
+            item.delete_at = datetime.datetime.now()
+        session_commit()
 
 
 class GetRecommend:
@@ -275,3 +300,6 @@ class GetRecommend:
 
     def post_recommend(self, content, img, user_id):
         self._get_res.post_recommend(content, img, user_id)
+
+    def delete_recommend(self, user_id, recommend_id):
+        self._get_res.delete_recommend(user_id, recommend_id)
