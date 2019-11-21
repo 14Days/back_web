@@ -18,6 +18,26 @@ def recommend_get():
     """
     user_id = session['user_id']
     role = session['type']
+    data = request.args
+    limit = int(data.get('limit')) if data.get('limit') is not None else 20
+    page = int(data.get('page')) if data.get('page') is not None else 0
+    start_time = data.get('start_time')
+    end_time = data.get('end_time')
+    nickname = data.get('nick_time')
+    content = data.get('content')
+
+    try:
+        count, res = GetRecommend(role).get_recommend(limit, page, start_time, end_time, nickname, content, user_id)
+        return success_warp({
+            'count': count,
+            'res': res
+        })
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
 
 
 @recommend_page.route('', methods=['POST'])
