@@ -176,7 +176,8 @@ def change_user_info(user_id, this_user, nickname, sex, email, phone, avatar):
         if new_avatar.status != 0:
             raise RuntimeError(errors['403'])
 
-        old_avatar.status = 2
+        if old_avatar.status != -1:
+            old_avatar.status = 2
         new_avatar.status, new_avatar.user_id = 1, this_user
 
     user.nickname, user.sex, user.email, user.phone = nickname, sex, email, phone
