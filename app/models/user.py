@@ -1,4 +1,5 @@
 import datetime
+from sqlalchemy import or_
 from app.models import db, session_commit
 from app.models.model import User, Avatar
 from app.utils.errors import errors
@@ -102,7 +103,7 @@ def get_user_detail(user_id, this_user, role):
     else:
         user = User.query. \
             filter(User.id == this_user). \
-            filter(User.parent_id == user_id). \
+            filter(or_(User.parent_id == user_id, User.id == user_id)). \
             filter(User.delete_at.is_(None)). \
             first()
 
