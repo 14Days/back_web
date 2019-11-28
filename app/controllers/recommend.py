@@ -136,7 +136,7 @@ def upload_img():
         return fail_warp(errors['501']), 500
 
 
-@recommend_page.route('<int:recommend_id>', methods=['PUT'])
+@recommend_page.route('/<int:recommend_id>', methods=['PUT'])
 @auth_require(Permission.ROOT | Permission.ADMIN | Permission.DESIGNER)
 def recommend_put(recommend_id):
     user_id = session['user_id']
