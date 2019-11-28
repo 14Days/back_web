@@ -78,7 +78,11 @@ class INotice:
         self._sql_all = self._sql_all.filter(Notice.delete_at.is_(None))
 
         count = self._sql_all.count()
-        data = self._sql_all.order_by(Notice.is_top.desc()).limit(limit).offset(page * limit).all()
+        data = self._sql_all. \
+            order_by(Notice.is_top.desc()). \
+            order_by(Notice.create_at.desc()). \
+            limit(limit).offset(page * limit). \
+            all()
 
         res = []
         for item in data:
