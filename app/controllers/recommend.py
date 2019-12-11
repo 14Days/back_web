@@ -7,7 +7,6 @@ from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 
 recommend_page = Blueprint('recommend', __name__, url_prefix='/img')
-# TODO 逐个核对适应新逻辑
 
 
 @recommend_page.route('', methods=['GET'])

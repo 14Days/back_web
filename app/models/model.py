@@ -114,6 +114,18 @@ class Recommend(db.Model):
     comment = db.relationship('TopComment', backref='recommend', lazy=True)
 
 
+class Dir(db.Model):
+    """
+    图片分类
+    """
+    id = db.Column(db.Integer, autoincrement=True, primary_key=True)
+    name = db.Column(db.String, nullable=False)
+    create_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
+    delete_at = db.Column(db.DateTime, nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    images = db.relationship('Img', backref='dir', lazy=True)
+
+
 class Img(db.Model):
     """
     推荐消息图片模型
@@ -125,6 +137,7 @@ class Img(db.Model):
     delete_at = db.Column(db.DateTime, nullable=True)
     recommend_id = db.Column(db.Integer, db.ForeignKey('recommend.id'), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    dir_id = db.Column(db.Integer, db.ForeignKey('dir.id'), nullable=True)
 
 
 class TopTag(db.Model):
