@@ -21,6 +21,7 @@ class User(db.Model):
     avatar = db.relationship('Avatar', backref='user', lazy=True)
     notice = db.relationship('Notice', backref='user', lazy=True)
     recommend = db.relationship('Recommend', backref='user', lazy=True)
+    images = db.relationship('Img', backref='user', lazy=True)
 
 
 class Avatar(db.Model):
@@ -62,6 +63,13 @@ tag_recommend = db.Table(
     db.Column('recommend_id', db.Integer, db.ForeignKey('recommend.id'), primary_key=True)
 )
 
+# 推荐消息图片关系
+recommend_img = db.Table(
+    'recommend_img',
+    db.Column('recommend_id', db.Integer, db.ForeignKey('recommend.id'), primary_key=True),
+    db.Column('img_id', db.Integer, db.ForeignKey('img.id'), primary_key=True)
+)
+
 
 class AppUser(db.Model):
     """
@@ -101,7 +109,7 @@ class Recommend(db.Model):
     create_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
     delete_at = db.Column(db.DateTime, nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    img = db.relationship('Img', backref='recommend', lazy=True)
+    img = db.relationship('Img', secondary=recommend_img, lazy='subquery')
     thumbs = db.relationship('AppUser', secondary=thumb, lazy='subquery')
     comment = db.relationship('TopComment', backref='recommend', lazy=True)
 
@@ -112,11 +120,11 @@ class Img(db.Model):
     """
     id = db.Column(db.Integer, autoincrement=True, primary_key=True)
     name = db.Column(db.String, nullable=False)
-    # 图片的种类，1爬虫获取 2等上传
-    type = db.Column(db.Integer, nullable=False)
+    type = db.Column(db.Integer, nullable=False, default=0)
     create_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now)
     delete_at = db.Column(db.DateTime, nullable=True)
     recommend_id = db.Column(db.Integer, db.ForeignKey('recommend.id'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
 
 class TopTag(db.Model):

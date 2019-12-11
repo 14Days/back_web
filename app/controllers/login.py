@@ -1,5 +1,4 @@
 from flask import Blueprint, request, current_app, session
-from flask.views import MethodView
 from sqlalchemy.exc import SQLAlchemyError
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors

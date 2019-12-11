@@ -1,13 +1,13 @@
 import os
 import pathlib
-import cv2
+from PIL import Image
 from app.utils.md5 import file_md5
 
 
 def compress(path: str) -> str:
-    img = cv2.imread(path, cv2.IMREAD_COLOR)
+    img = Image.open(path)
     new_path = path.rsplit('.', 1)[0] + '.jpg'
-    cv2.imwrite(new_path, img, [cv2.IMWRITE_JPEG_QUALITY, 30])
+    img.save(new_path, 'jpeg')
 
     return new_path
 

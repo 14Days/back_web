@@ -7,6 +7,7 @@ from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
 
 recommend_page = Blueprint('recommend', __name__, url_prefix='/img')
+# TODO 逐个核对适应新逻辑
 
 
 @recommend_page.route('', methods=['GET'])
@@ -112,6 +113,7 @@ def upload_img():
     上传推荐消息图片
     :return:
     """
+    user_id = session['user_id']
     f = request.files.get('img')
     # 校验存在性
     if f is None:
@@ -124,7 +126,7 @@ def upload_img():
     name = deal_img('img', f)
 
     try:
-        img = save_img(name)
+        img = save_img(name, user_id)
         current_app.logger.info('delete user success %s', str({
             'avatar_id': img.id,
         }))

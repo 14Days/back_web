@@ -4,15 +4,16 @@ from app.models.model import Img, Recommend, User, AppAvatar
 from app.utils.errors import errors
 
 
-def save_img(name):
+def save_img(name, user_id):
     """
     保存用户上传图片
     :param name:
+    :param user_id
     :return:
     """
     img = Img(
         name=name,
-        type=2,
+        user_id=user_id
     )
     db.session.add(img)
     session_commit()
@@ -80,11 +81,10 @@ class IRecommend:
             }
             temp_img = []
             for img_item in item.img:
-                if img_item.delete_at is None:
-                    temp_img.append({
-                        'id': img_item.id,
-                        'name': img_item.name
-                    })
+                temp_img.append({
+                    'id': img_item.id,
+                    'name': img_item.name
+                })
             temp['img_url'] = temp_img
             res.append(temp)
 
@@ -105,9 +105,7 @@ class IRecommend:
         # 得到点赞用户
         thumb_user = []
         for user in res.thumbs:
-            thumb_user.append({
-                'nickname': user.nickname
-            })
+            thumb_user.append(user.nickname)
 
         # 得到评论
         comment = []
@@ -134,7 +132,6 @@ class IRecommend:
                 for second in top.second_comment:
                     if second.delete_at is None:
                         second_avatar = AppAvatar.query.filter(AppAvatar.status == -1).first()
-                        print(second_avatar)
                         second_avatars = second.app_user.avatar
                         for item in second_avatars:
                             if item.status == 1:
@@ -154,11 +151,10 @@ class IRecommend:
         # 得到图片url
         temp_img = []
         for img_item in res.img:
-            if img_item.delete_at is None:
-                temp_img.append({
-                    'id': img_item.id,
-                    'name': img_item.name
-                })
+            temp_img.append({
+                'id': img_item.id,
+                'name': img_item.name
+            })
 
         recommend_avatar = AppAvatar.query.filter(AppAvatar.status == -1).first()
         recommend_avatars = res.user.avatar
@@ -175,6 +171,7 @@ class IRecommend:
                 'nickname': res.user.nickname,
                 'avatar': recommend_avatar.name
             },
+            'thumb_user': thumb_user,
             'create_at': res.create_at.strftime('%Y-%m-%d'),
             'comment': comment
         }

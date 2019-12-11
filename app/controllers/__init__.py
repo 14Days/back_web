@@ -5,6 +5,7 @@ from app.controllers.user import user_page
 from app.controllers.notice import notice_page
 from app.controllers.recommend import recommend_page
 from app.controllers.params import params_page
+from app.controllers.gallery import gallery_page
 
 
 def register_router(app: Flask):
@@ -26,3 +27,7 @@ def register_router(app: Flask):
     # 查询参数
     auth_mid(params_page)
     app.register_blueprint(params_page)
+
+    # 图库
+    auth_mid(gallery_page)
+    app.register_blueprint(gallery_page)
