@@ -184,7 +184,10 @@ class IRecommend:
         :param img:
         :return:
         """
+        # 图片使用数加一
         image = Img.query.filter(Img.id.in_(img)).all()
+        for item in image:
+            item.type = item.type + 1
         recommend = Recommend(content=content)
         recommend.img.extend(image)
         user = User.query.filter_by(id=user_id).first()
@@ -202,12 +205,22 @@ class IRecommend:
         recommend.content = content
         old = Img.query.filter(Img.id.in_(old_img_id)).all()
         for item in old:
-            item.delete_at = datetime.datetime.now()
+            item.type = item.type - 1
+            recommend.img.remove(item)
         new = Img.query.filter(Img.id.in_(new_img_id)).all()
         for item in new:
-            item.delete_at = None
-            item.recommend_id = recommend.id
+            item.type = item.type + 1
+        recommend.img = new
         session_commit()
+
+    @staticmethod
+    def _delete_recommend(recommends):
+        if recommends is None:
+            raise RuntimeError(errors['501'])
+        for item in recommends:
+            for img in recommends.img:
+                img.type = img.type - 1
+            item.delete_at = datetime.datetime.now()
 
 
 class RecommendRoot(IRecommend):
@@ -232,8 +245,7 @@ class RecommendRoot(IRecommend):
 
     def delete_recommend(self, user_id, recommend_ids: list):
         recommends = Recommend.query.filter(Recommend.id.in_(recommend_ids)).all()
-        for item in recommends:
-            item.delete_at = datetime.datetime.now()
+        self._delete_recommend(recommends)
         session_commit()
 
 
@@ -274,8 +286,7 @@ class RecommendAdmin(IRecommend):
             filter(Recommend.id.in_(recommend_ids)). \
             filter(Recommend.user_id.in_(id_list)). \
             all()
-        for item in recommends:
-            item.delete_at = datetime.datetime.now()
+        self._delete_recommend(recommends)
         session_commit()
 
 
@@ -304,8 +315,7 @@ class RecommendDesigner(IRecommend):
             filter(Recommend.id.in_(recommend_ids)). \
             filter(Recommend.user_id == user_id). \
             all()
-        for item in recommends:
-            item.delete_at = datetime.datetime.now()
+        self._delete_recommend(recommends)
         session_commit()
 
 
