@@ -4,12 +4,9 @@ from PIL import Image
 from app.utils.md5 import file_md5
 
 
-def compress(path: str) -> str:
+def compress(path: str):
     img = Image.open(path)
-    new_path = path.rsplit('.', 1)[0] + '.jpg'
-    img.save(new_path, 'jpeg')
-
-    return new_path
+    img.save(path)
 
 
 def allowed_file(filename):
@@ -23,10 +20,10 @@ def deal_img(dirname, f):
     file_path = pathlib.Path.joinpath(_UPLOAD_FOLDER, f.filename)
     f.save(str(file_path))
     # 压缩图片
-    new_path = compress(str(file_path))
+    compress(str(file_path))
 
     # 文件重命名
-    name = file_md5(new_path) + '.jpg'
+    name = file_md5(str(file_path)) + '.jpg'
     os.rename(
         str(file_path),
         str(pathlib.Path.joinpath(_UPLOAD_FOLDER, name))
