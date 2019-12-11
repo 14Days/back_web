@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, current_app
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.gallery import post_dir, get_dir
+from app.models.gallery import post_dir, get_dir, delete_dir, put_dir
 from app.utils.auth import auth_require, Permission
 from app.utils.warp import fail_warp, success_warp
 from app.utils.errors import errors
@@ -17,11 +17,15 @@ def get_gallery():
     page = int(data.get('page')) if data.get('page') is not None else 0
 
     try:
-        dirs = get_dir(user_id, limit, page)
+        count, dirs = get_dir(user_id, limit, page)
         current_app.logger.info('gallery info %s', str({
             'dirs': dirs,
+            'count': count
         }))
-        return success_warp(dirs)
+        return success_warp({
+            'count': count,
+            'dirs': dirs
+        })
     except SQLAlchemyError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
@@ -37,7 +41,7 @@ def post_gallery():
     data = request.json
     name = data.get('name')
 
-    if name is None:
+    if name is None or name == '':
         current_app.logger.error('gallery info %s', str({
             'name': name,
         }))
@@ -45,7 +49,7 @@ def post_gallery():
 
     try:
         id = post_dir(name, user_id)
-        current_app.logger.info('gallery info %s', str({
+        current_app.logger.info('gallery post %s', str({
             'name': name,
             'id': id
         }))
@@ -62,6 +66,46 @@ def post_gallery():
 
 @gallery_page.route('/<int:dir_id>', methods=['DELETE'])
 @auth_require(Permission.ADMIN | Permission.DESIGNER)
-def delete_gallery(dir_id):
-    # TODO 删除分类列表
-    pass
+def delete_gallery(dir_id: int):
+    user_id = session['user_id']
+
+    try:
+        delete_dir(dir_id, user_id)
+        current_app.logger.info('gallery delete %s', str({
+            'id': dir_id
+        }))
+        return success_warp('删除成功')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+
+
+@gallery_page.route('/<int:dir_id>', methods=['PUT'])
+@auth_require(Permission.ADMIN | Permission.DESIGNER)
+def put_gallery(dir_id: int):
+    user_id = session['user_id']
+
+    data = request.json
+    new_name = data.get('name')
+    if new_name is None or new_name == '':
+        current_app.logger.error('gallery info %s', str({
+            'name': new_name,
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        put_dir(dir_id, new_name, user_id)
+        current_app.logger.info('gallery put %s', str({
+            'id': dir_id,
+            'new_name': new_name
+        }))
+        return success_warp('修改成功')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
