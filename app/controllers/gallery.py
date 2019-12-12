@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, current_app
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.gallery import post_dir, get_dir, delete_dir, put_dir
+from app.models.gallery import post_dir, get_dir, delete_dir, put_dir, get_dir_detail
 from app.utils.auth import auth_require, Permission
 from app.utils.warp import fail_warp, success_warp
 from app.utils.errors import errors
@@ -32,6 +32,27 @@ def get_gallery():
     except RuntimeError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
+
+
+@gallery_page.route('/<int:gallery_id>', methods=['GET'])
+@auth_require(Permission.ADMIN | Permission.DESIGNER)
+def get_gallery_detail(gallery_id):
+    user_id = session['user_id']
+    data = request.args
+    limit = int(data.get('limit')) if data.get('limit') is not None else 20
+    page = int(data.get('page')) if data.get('page') is not None else 0
+
+    try:
+        count, images = get_dir_detail(gallery_id, limit, page, user_id)
+        return success_warp({
+            'count': count,
+            'images': images
+        })
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
 
 
 @gallery_page.route('', methods=['POST'])

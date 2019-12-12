@@ -137,7 +137,7 @@ class Img(db.Model):
     delete_at = db.Column(db.DateTime, nullable=True)
     recommend_id = db.Column(db.Integer, db.ForeignKey('recommend.id'), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
-    dir_id = db.Column(db.Integer, db.ForeignKey('dir.id'), nullable=True)
+    dir_id = db.Column(db.Integer, db.ForeignKey('dir.id'), nullable=True, default=0)
 
 
 class TopTag(db.Model):

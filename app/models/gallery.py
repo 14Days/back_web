@@ -1,6 +1,6 @@
 import datetime
 from app.models import db, session_commit
-from app.models.model import Dir
+from app.models.model import Dir, Img
 from app.utils.errors import errors
 
 
@@ -18,6 +18,31 @@ def get_dir(user_id: int, limit: int, page: int):
         temp.append({
             'id': dirname.id,
             'name': dirname.name
+        })
+
+    return count, temp
+
+
+def get_dir_detail(dir_id: int, limit: int, page: int, user_id: int):
+    base = Img.query. \
+        filter(Img.dir_id == dir_id). \
+        filter(Img.user_id == user_id). \
+        filter(Img.delete_at.is_(None))
+
+    count = base.count()
+    images = base. \
+        limit(limit).offset(limit * page). \
+        all()
+
+    temp = []
+    for item in images:
+        temp.append({
+            'uploader': item.user.nickname,
+            'img_id': item.id,
+            'file_id': dir_id,
+            'upload_time': item.create_at.strftime('%Y-%m-%d'),
+            'count': item.type,
+            'name': item.name
         })
 
     return count, temp
