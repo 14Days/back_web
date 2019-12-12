@@ -115,3 +115,23 @@ def delete_dir_img(img_id: int, user_id: int):
         raise RuntimeError(errors['502'])
 
     img.delete_at = datetime.datetime.now()
+
+
+def put_dir_img_move(img_id, file_id, user_id):
+    dirname = Dir.query. \
+        filter(Dir.id == file_id). \
+        filter(Dir.user_id == user_id). \
+        filter(Dir.delete_at.is_(None)). \
+        first()
+
+    img = Img.query. \
+        filter(Img.id == img_id). \
+        filter(Img.user_id == user_id). \
+        filter(Img.delete_at.is_(None)). \
+        first()
+
+    if dirname is None or img is None:
+        raise RuntimeError(errors['403'])
+
+    img.dir_id = file_id
+    session_commit()

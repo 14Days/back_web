@@ -1,6 +1,6 @@
 from flask import Blueprint, request, session, current_app
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.gallery import post_dir, get_dir, delete_dir, put_dir, get_dir_detail, delete_dir_img
+from app.models.gallery import post_dir, get_dir, delete_dir, put_dir, get_dir_detail, delete_dir_img, put_dir_img_move
 from app.utils.auth import auth_require, Permission
 from app.utils.warp import fail_warp, success_warp
 from app.utils.errors import errors
@@ -158,7 +158,7 @@ def delete_img():
     img_id = request.json.get('img_id')
 
     if img_id is None or img_id == '':
-        current_app.logger.error('gallery info %s', str({
+        current_app.logger.error('img delete %s', str({
             'img_id': img_id
         }))
         return fail_warp(errors['101']), 400
@@ -181,3 +181,29 @@ def delete_img():
 @gallery_page.route('/img/move', methods=['PUT'])
 @auth_require(Permission.ADMIN | Permission.DESIGNER)
 def put_move_img():
+    user_id = session['user_id']
+    data = request.json
+    img_id = data.get('img_id')
+    file_id = data.get('file_id')
+
+    if type(img_id) != int or type(file_id) != int:
+        current_app.logger.error('img move %s', str({
+            'img_id': img_id,
+            'file_id': file_id
+        }))
+        return fail_warp(errors['101']), 400
+
+    try:
+        put_dir_img_move(img_id, file_id, user_id)
+        current_app.logger.info('img delete %s', str({
+            'id': img_id,
+            'file_id': file_id,
+            'user': user_id
+        }))
+        return success_warp('移动成功')
+    except SQLAlchemyError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
+    except RuntimeError as e:
+        current_app.logger.error(e)
+        return fail_warp(e.args[0]), 500
