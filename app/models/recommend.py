@@ -218,7 +218,7 @@ class IRecommend:
         if recommends is None:
             raise RuntimeError(errors['501'])
         for item in recommends:
-            for img in recommends.img:
+            for img in item.img:
                 img.type = img.type - 1
             item.delete_at = datetime.datetime.now()
 

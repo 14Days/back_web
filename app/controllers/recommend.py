@@ -191,7 +191,7 @@ def recommend_delete():
             'user_id': user_id,
             'recommend_ids': recommend_ids
         }))
-        return success_warp('add recommend success')
+        return success_warp('delete recommend success')
     except SQLAlchemyError as e:
         current_app.logger.error(e)
         return fail_warp(e.args[0]), 500
