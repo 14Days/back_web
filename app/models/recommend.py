@@ -264,7 +264,7 @@ class RecommendAdmin(IRecommend):
 
     def get_recommend(self, limit, page, start_time, end_time, nickname, content, user_id):
         id_list = self._get_user_list(user_id)
-        self._sql_all = Recommend.query.filter(Recommend.id.in_(id_list))
+        self._sql_all = Recommend.query.filter(Recommend.user_id.in_(id_list))
         return self._get_recommend(limit, page, start_time, end_time, nickname, content)
 
     def get_recommend_detail(self, user_id, recommend_id):
