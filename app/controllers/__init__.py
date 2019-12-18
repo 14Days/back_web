@@ -8,6 +8,7 @@ from app.controllers.params import params_page
 from app.controllers.gallery import gallery_page
 from app.controllers.comment import comment_page
 from app.controllers.record import record_page
+from app.utils.pytorch import label_recommend, executor
 
 
 def register_router(app: Flask):
@@ -41,3 +42,7 @@ def register_router(app: Flask):
     # 统计
     auth_mid(record_page)
     app.register_blueprint(record_page)
+    @app.route('/test')
+    def test():
+        executor.submit(label_recommend, 101)
+        return '333'

@@ -2,6 +2,7 @@ import datetime
 from app.models import db, session_commit
 from app.models.model import Img, Recommend, User, AppAvatar
 from app.utils.errors import errors
+from app.utils.pytorch import label_recommend, executor
 
 
 def save_img(name, user_id):
@@ -195,6 +196,8 @@ class IRecommend:
 
         session_commit()
 
+        executor.submit(label_recommend, recommend.id)
+
     def _put_recommend(self, content, new_img_id: list, old_img_id: list, recommend_id: int):
         recommend = self._sql_put.filter(Recommend.id == recommend_id). \
             filter(Recommend.delete_at.is_(None)). \
@@ -212,6 +215,8 @@ class IRecommend:
             item.type = item.type + 1
         recommend.img = new
         session_commit()
+
+        executor.submit(label_recommend, recommend.id)
 
     @staticmethod
     def _delete_recommend(recommends):
