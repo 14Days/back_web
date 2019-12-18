@@ -53,7 +53,15 @@ class Notice(db.Model):
 thumb = db.Table(
     'thumb',
     db.Column('app_user_id', db.Integer, db.ForeignKey('app_user.id'), primary_key=True),
-    db.Column('recommend_id', db.Integer, db.ForeignKey('recommend.id'), primary_key=True)
+    db.Column('recommend_id', db.Integer, db.ForeignKey('recommend.id'), primary_key=True),
+    db.Column('create_at', db.DateTime, default=datetime.datetime.now)
+)
+
+favorite = db.Table(
+    'favorite',
+    db.Column('app_user_id', db.Integer, db.ForeignKey('app_user.id'), primary_key=True),
+    db.Column('recommend_id', db.Integer, db.ForeignKey('recommend.id'), primary_key=True),
+    db.Column('create_at', db.DateTime, default=datetime.datetime.now)
 )
 
 # 标签推荐信息关系
@@ -112,6 +120,7 @@ class Recommend(db.Model):
     img = db.relationship('Img', secondary=recommend_img, lazy='subquery')
     thumbs = db.relationship('AppUser', secondary=thumb, lazy='subquery')
     comment = db.relationship('TopComment', backref='recommend', lazy=True)
+    tags = db.relationship('SecondTag', secondary=tag_recommend, lazy='subquery')
 
 
 class Dir(db.Model):
