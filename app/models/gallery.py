@@ -115,6 +115,7 @@ def delete_dir_img(img_id: int, user_id: int):
         raise RuntimeError(errors['502'])
 
     img.delete_at = datetime.datetime.now()
+    session_commit()
 
 
 def put_dir_img_move(img_id, file_id, user_id):
