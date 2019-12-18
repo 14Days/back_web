@@ -1,9 +1,8 @@
 import pathlib
 import requests
 from concurrent.futures import ThreadPoolExecutor
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
+from app.models import session_commit
 from app.models.model import Recommend, SecondTag
 
 executor = ThreadPoolExecutor(max_workers=5)
@@ -27,28 +26,23 @@ def get_label(name: str):
         raise RuntimeError('ML error')
 
 
-def label_recommend(recommend_id: int):
+def label_recommend(recommend_id: int, app):
     """
     异步标记任务
     """
     try:
-        print(db.session.query(Recommend))
-        print(Recommend.query.filter(Recommend.id == recommend_id))
-        recommend = Recommend.query.filter(Recommend.id == recommend_id).first()
-        print(recommend)
-        images = recommend.img
-        tag_id = []
-        for item in images:
-            print(item.name)
-            try:
-                tag_id.append(get_label(item.name))
-            except FileNotFoundError:
-                continue
-        tags = SecondTag.query.filter(SecondTag.id.in_(tag_id)).all()
-        print(tags)
-        recommend.tags.clear()
-        recommend.tags.extend(tags)
-        session_commit()
-        print('done')
+        with app.app_context():
+            recommend = Recommend.query.filter(Recommend.id == recommend_id).first()
+            images = recommend.img
+            tag_id = []
+            for item in images:
+                try:
+                    tag_id.append(get_label(item.name))
+                except FileNotFoundError:
+                    continue
+            tags = SecondTag.query.filter(SecondTag.id.in_(tag_id)).all()
+            recommend.tags.clear()
+            recommend.tags.extend(tags)
+            session_commit()
     except SQLAlchemyError as e:
         print(e.args)

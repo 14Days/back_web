@@ -5,6 +5,7 @@ from app.utils.auth import auth_require, Permission
 from app.utils.img import allowed_file, deal_img
 from app.utils.warp import success_warp, fail_warp
 from app.utils.errors import errors
+from app.utils.pytorch import label_recommend, executor
 
 recommend_page = Blueprint('recommend', __name__, url_prefix='/img')
 
@@ -90,7 +91,8 @@ def recommend_post():
         return fail_warp(errors['101']), 400
 
     try:
-        GetRecommend(role).post_recommend(content, img, user_id)
+        recommend_id = GetRecommend(role).post_recommend(content, img, user_id)
+        executor.submit(label_recommend, recommend_id, current_app._get_current_object())
         current_app.logger.info('recommend info %s', str({
             'content': content,
             'img': img,
@@ -157,7 +159,8 @@ def recommend_put(recommend_id):
         return fail_warp(errors['101']), 400
 
     try:
-        GetRecommend(role).put_recommend(content, new_img_id, old_img_id, user_id, recommend_id)
+        recommend_id = GetRecommend(role).put_recommend(content, new_img_id, old_img_id, user_id, recommend_id)
+        executor.submit(label_recommend, recommend_id, current_app._get_current_object())
         current_app.logger.info('put recommend %s', str({
             'content': content,
             'new_img': new_img_id,

@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, current_app
 from app.middlewares.auth import auth_mid
 from app.controllers.login import login_page
 from app.controllers.user import user_page
@@ -42,7 +42,3 @@ def register_router(app: Flask):
     # 统计
     auth_mid(record_page)
     app.register_blueprint(record_page)
-    @app.route('/test')
-    def test():
-        executor.submit(label_recommend, 101)
-        return '333'
