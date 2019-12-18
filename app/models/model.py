@@ -49,6 +49,14 @@ class Notice(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
 
+# 关注关系
+app_user_user = db.Table(
+    'app_user_user',
+    db.Column('app_user_id', db.Integer, db.ForeignKey('app_user.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('create_at', db.DateTime, default=datetime.datetime.now)
+)
+
 # 用户点赞关系
 thumb = db.Table(
     'thumb',
@@ -57,6 +65,7 @@ thumb = db.Table(
     db.Column('create_at', db.DateTime, default=datetime.datetime.now)
 )
 
+# 收藏关系
 favorite = db.Table(
     'favorite',
     db.Column('app_user_id', db.Integer, db.ForeignKey('app_user.id'), primary_key=True),
