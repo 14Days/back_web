@@ -273,7 +273,7 @@ class RecommendAdmin(IRecommend):
 
     def get_recommend_detail(self, user_id, recommend_id):
         id_list = self._get_user_list(user_id)
-        self._sql_detail = Recommend.query.filter(Recommend.id.in_(id_list))
+        self._sql_detail = Recommend.query.filter(Recommend.user_id.in_(id_list))
         return self._get_recommend_detail(recommend_id)
 
     def post_recommend(self, content: str, img: list, user_id: int):
@@ -281,7 +281,7 @@ class RecommendAdmin(IRecommend):
 
     def put_recommend(self, content, new_img_id: list, old_img_id: list, user_id: int, recommend_id: int):
         id_list = self._get_user_list(user_id)
-        self._sql_put = Recommend.query.filter(Recommend.id.in_(id_list))
+        self._sql_put = Recommend.query.filter(Recommend.user_id.in_(id_list))
         return self._put_recommend(content, new_img_id, old_img_id, recommend_id)
 
     def delete_recommend(self, user_id, recommend_ids: list):
