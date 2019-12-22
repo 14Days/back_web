@@ -115,6 +115,7 @@ class INotice:
             'content': temp.content,
             'create_at': temp.create_at.strftime('%Y-%m-%d'),
             'user': temp.user.nickname,
+            'user_id': temp.user.id,
             'is_top': temp.is_top,
             'type': temp.type
         }
@@ -221,7 +222,7 @@ class NoticeDesigner(INotice):
 
     @staticmethod
     def _initial(user_id):
-        root = User.query.filter(User.role == 1).first().parent_id
+        root = User.query.filter(User.role == 1).first().id
         parent = User.query.filter(User.id == user_id).first().parent_id
 
         return root, parent
