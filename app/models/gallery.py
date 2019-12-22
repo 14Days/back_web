@@ -37,6 +37,7 @@ def get_dir_detail(dir_id: int, limit: int, page: int, user_id: int):
 
     count = base.count()
     images = base. \
+        order(Img.create_at.desc()). \
         limit(limit).offset(limit * page). \
         all()
 
