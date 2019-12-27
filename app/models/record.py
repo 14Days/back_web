@@ -9,6 +9,9 @@ class RecordBuild:
 
     @staticmethod
     def _dict2array(res: dict, name):
+        def num_sort(ele):
+            return ele['num']
+
         temp = []
         for item in res.keys():
             temp.append({
@@ -21,6 +24,8 @@ class RecordBuild:
                 name: '无',
                 'num': 0
             })
+
+        temp.sort(key=num_sort, reverse=True)
 
         return temp
 

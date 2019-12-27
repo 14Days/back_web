@@ -1,6 +1,6 @@
 import datetime
 from app.models import db, session_commit
-from app.models.model import Img, Recommend, User, AppAvatar
+from app.models.model import Img, Recommend, User, AppAvatar, TopComment
 from app.utils.errors import errors
 
 
@@ -77,7 +77,7 @@ class IRecommend:
                 'id': item.id,
                 'content': item.content,
                 'thumb': len(item.thumbs),
-                'comment': len(item.comment)
+                'comment': item.comment.filter(TopComment.delete_at.is_(None)).count()
             }
             temp_img = []
             for img_item in item.img:
@@ -109,7 +109,7 @@ class IRecommend:
 
         # 得到评论
         comment = []
-        for top in res.comment:
+        for top in res.comment.all():
             # 一级评论
             if top.delete_at is None:
                 # 用户头像

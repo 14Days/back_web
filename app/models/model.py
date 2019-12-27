@@ -128,7 +128,7 @@ class Recommend(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     img = db.relationship('Img', secondary=recommend_img, lazy='subquery')
     thumbs = db.relationship('AppUser', secondary=thumb, lazy='subquery')
-    comment = db.relationship('TopComment', backref='recommend', lazy=True)
+    comment = db.relationship('TopComment', backref='recommend', lazy='dynamic')
     tags = db.relationship('SecondTag', secondary=tag_recommend, lazy='subquery')
 
 
