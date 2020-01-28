@@ -1,0 +1,21 @@
+name: release
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        use: actions/checkout@master
+      - name: Delete
+        if: $(/usr/bin/docker ps -a | grep -c web_app) -ge 1
+        run: |
+          docker stop web_app
+          docker rm web_app
+          docker rmi back_web
+      - name: Deploy
+        run: |
+          docker build -t 'back_web' .
+          docker run -d -p 6002:8080 --name=web_app --mount source=weblog,target=/app/log --mount type=bind,source=/www/wwwroot/pull.wghtstudio.cn/avatar/web,target=/app/avatar --mount type=bind,source=/www/wwwroot/pull.wghtstudio.cn/img,target=/app/img back_web
