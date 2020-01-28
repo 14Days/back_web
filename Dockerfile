@@ -1,4 +1,4 @@
-FROM python:3.7-alpine AS base
+FROM python:3.7 AS base
 WORKDIR /app
 
 FROM base AS dependencies
