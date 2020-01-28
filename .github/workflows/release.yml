@@ -9,12 +9,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-      - name: Delete
-        if: docker ps -a | grep -c web_app == 1
-        run: |
-          docker stop web_app
-          docker rm web_app
-          docker rmi back_web
       - name: Deploy
         run: |
           docker build -t 'back_web' .
